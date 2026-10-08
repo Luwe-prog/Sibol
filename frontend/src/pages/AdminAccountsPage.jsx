@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import api, { readError } from '../api/client.js'
 import FormField from '../components/FormField.jsx'
-import { Badge, Checkbox, EmptyState, ErrorAlert, InactiveBadge, Loading, Modal, PageHeader } from '../components/ui.jsx'
+import { Badge, Checkbox, ConfirmDialog, EmptyState, ErrorAlert, InactiveBadge, FormActions, Loading, Modal, PageHeader } from '../components/ui.jsx'
 import { useAuth } from '../context/useAuth.js'
 import useFetch from '../hooks/useFetch.js'
-import { btnPrimary, btnSecondary, btnSmall } from '../lib/styles.js'
+import { FLAG } from '../lib/status.js'
+import { btnPrimary, btnSmall } from '../lib/styles.js'
 
 // Every account: Admins and Super Admins.
 export default function AdminAccountsPage() {
@@ -15,11 +16,19 @@ export default function AdminAccountsPage() {
   // { name, email, password } shown once after creating an account or resetting a password
   const [credentials, setCredentials] = useState(null)
   const [actionError, setActionError] = useState('')
+  // { kind: 'reset' | 'deactivate', account } while a confirmation window is open
+  const [confirming, setConfirming] = useState(null)
+
+  const confirmAction = () => {
+    const { kind, account } = confirming
+    setConfirming(null)
+    if (kind === 'reset') resetPassword(account)
+    else setActive(account, false)
+  }
 
   const accounts = data?.admins ?? []
 
   const resetPassword = async (account) => {
-    if (!window.confirm(`Reset the password for ${account.name}? They will be signed out and must use a new temporary password.`)) return
     setActionError('')
     try {
       const response = await api.post(`/super-admin/admins/${account.id}/reset-password`)
@@ -31,7 +40,6 @@ export default function AdminAccountsPage() {
   }
 
   const setActive = async (account, isActive) => {
-    if (!isActive && !window.confirm(`Deactivate ${account.name}? They will be signed out and cannot log in until reactivated.`)) return
     setActionError('')
     try {
       await api.patch(`/super-admin/admins/${account.id}/active`, { is_active: isActive })
@@ -63,20 +71,20 @@ export default function AdminAccountsPage() {
           const isSuperAdmin = account.role === 'super_admin'
 
           return (
-            <div key={account.id} className="rounded-xl border border-stone-200 bg-white p-4">
+            <div key={account.id} className="rounded-2xl border border-stone-200 bg-white p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="flex flex-wrap items-center gap-2 font-semibold text-stone-900">
                     {account.name}
                     {isSuperAdmin ? (
-                      <Badge className="bg-green-100 text-green-800">Super Admin</Badge>
+                      <Badge className={FLAG.superAdmin.badge}>Super Admin</Badge>
                     ) : (
-                      <Badge className="bg-stone-100 text-stone-700">Admin</Badge>
+                      <Badge className={FLAG.neutral.badge}>Admin</Badge>
                     )}
-                    {isMe && <Badge className="bg-stone-100 text-stone-700">You</Badge>}
+                    {isMe && <Badge className={FLAG.neutral.badge}>You</Badge>}
                     {!account.is_active && <InactiveBadge />}
                     {account.is_active && account.must_change_password && (
-                      <Badge className="bg-amber-100 text-amber-800">Temporary password</Badge>
+                      <Badge className={FLAG.unusual.badge}>Temporary password</Badge>
                     )}
                   </p>
                   <p className="text-sm text-stone-600">{account.email}</p>
@@ -93,10 +101,10 @@ export default function AdminAccountsPage() {
                   {/* Your own account is protected, so there is always a Super Admin who can log in. */}
                   {!isMe && (
                     <>
-                      <button type="button" className={btnSmall} onClick={() => resetPassword(account)}>
+                      <button type="button" className={btnSmall} onClick={() => setConfirming({ kind: 'reset', account })}>
                         Reset password
                       </button>
-                      <button type="button" className={btnSmall} onClick={() => setActive(account, !account.is_active)}>
+                      <button type="button" className={btnSmall} onClick={() => (account.is_active ? setConfirming({ kind: 'deactivate', account }) : setActive(account, true))}>
                         {account.is_active ? 'Deactivate' : 'Reactivate'}
                       </button>
                     </>
@@ -125,6 +133,28 @@ export default function AdminAccountsPage() {
             reload()
           }}
         />
+      )}
+
+      {confirming?.kind === 'reset' && (
+        <ConfirmDialog
+          title={`Reset the password for ${confirming.account.name}?`}
+          confirmLabel="Reset password"
+          onConfirm={confirmAction}
+          onCancel={() => setConfirming(null)}
+        >
+          They will be signed out everywhere. You will get a new temporary password to give them.
+        </ConfirmDialog>
+      )}
+
+      {confirming?.kind === 'deactivate' && (
+        <ConfirmDialog
+          title={`Deactivate ${confirming.account.name}?`}
+          confirmLabel="Deactivate"
+          onConfirm={confirmAction}
+          onCancel={() => setConfirming(null)}
+        >
+          They won’t be able to log in. Their readings stay. You can reactivate the account later.
+        </ConfirmDialog>
       )}
 
       {credentials && (
@@ -258,14 +288,7 @@ function AccountForm({ account, isMe, onClose, onSaved }) {
           <p className="text-sm text-stone-500">A temporary password is generated and shown to you after saving.</p>
         )}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className={btnSecondary} onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" className={btnPrimary} disabled={saving}>
-            {saving ? 'Saving…' : isNew ? 'Create account' : 'Save changes'}
-          </button>
-        </div>
+        <FormActions onCancel={onClose} saving={saving} saveLabel={isNew ? 'Create account' : 'Save changes'} />
       </form>
     </Modal>
   )

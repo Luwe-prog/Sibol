@@ -27,8 +27,9 @@ return [
 
     'allowed_headers' => ['*'],
 
-    // Lets the frontend read the file name of a CSV download.
-    'exposed_headers' => ['Content-Disposition'],
+    // Lets the frontend read the file name of a CSV download, and how long to wait
+    // after too many login attempts.
+    'exposed_headers' => ['Content-Disposition', 'Retry-After'],
 
     'max_age' => 0,
 

@@ -37,9 +37,9 @@ async function openFormAndFill(soil, temperature, humidity) {
     </MemoryRouter>,
   )
 
-  await user.type(await screen.findByLabelText('Soil moisture (%)'), soil)
-  await user.type(screen.getByLabelText('Temperature (°C)'), temperature)
-  await user.type(screen.getByLabelText('Humidity (%)'), humidity)
+  await user.type(await screen.findByLabelText('Soil moisture'), soil)
+  await user.type(screen.getByLabelText('Temperature'), temperature)
+  await user.type(screen.getByLabelText('Humidity'), humidity)
 
   return user
 }
@@ -91,7 +91,7 @@ describe('reading entry form', () => {
     await user.click(screen.getByRole('button', { name: 'Save and see result' }))
     await screen.findByText('Temperature is above 45 °C.')
 
-    await user.clear(screen.getByLabelText('Temperature (°C)'))
+    await user.clear(screen.getByLabelText('Temperature'))
 
     expect(screen.queryByText('Temperature is above 45 °C.')).not.toBeInTheDocument()
   })

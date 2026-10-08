@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import api, { readError } from '../api/client.js'
 import FormField from '../components/FormField.jsx'
-import { Badge, Checkbox, EmptyState, ErrorAlert, InactiveBadge, Loading, Modal, PageHeader } from '../components/ui.jsx'
+import { AppIcon } from '../components/icons.jsx'
+import { Checkbox, EmptyState, ErrorAlert, InactiveBadge, FormActions, Loading, Modal, PageHeader } from '../components/ui.jsx'
+import ZoneCard from '../components/ZoneCard.jsx'
 import useFetch from '../hooks/useFetch.js'
-import { formatDateTime, formatNumber } from '../lib/format.js'
-import { ENVIRONMENT_LABEL, MOISTURE_STATUS } from '../lib/status.js'
-import { btnPrimary, btnSecondary, btnSmall, linkClass } from '../lib/styles.js'
+import { btnPrimary, btnSecondary, btnSmall } from '../lib/styles.js'
 
 export default function FarmPage() {
   const { farmId } = useParams()
@@ -21,20 +21,27 @@ export default function FarmPage() {
 
   return (
     <div>
-      <p className="mb-2 text-sm">
-        <Link to="/farms" className={linkClass}>
-          ← All farms
-        </Link>
-      </p>
-
-      <PageHeader title={farm.name} subtitle={farm.location}>
+      <PageHeader
+        title={farm.name}
+        back={{ to: '/farms', label: 'Farms' }}
+        subtitle={
+          farm.location && (
+            <span className="flex items-center gap-1.5">
+              <AppIcon name="map-pin" className="h-4 w-4" />
+              {farm.location}
+            </span>
+          )
+        }
+      >
         {farm.zones.length > 0 && (
           <Link to={`/farms/${farm.id}/history`} className={btnSecondary}>
+            <AppIcon name="history" />
             Farm history
           </Link>
         )}
         {farm.is_active ? (
           <button type="button" className={btnPrimary} onClick={() => setEditing({})}>
+            <AppIcon name="plus" />
             New zone
           </button>
         ) : (
@@ -43,60 +50,29 @@ export default function FarmPage() {
       </PageHeader>
 
       {!farm.is_active && (
-        <p className="mb-4 rounded-lg bg-stone-100 px-3 py-2 text-sm text-stone-600">
+        <p className="mb-4 flex items-start gap-2 rounded-2xl border border-stone-300 bg-stone-100 px-4 py-3 text-[15px] text-stone-700">
+          <AppIcon name="ban" className="mt-0.5 h-5 w-5" />
           This farm is inactive. Its zones and history can be viewed, but no new zones or readings can be added.
         </p>
       )}
 
       {farm.zones.length === 0 && (
-        <EmptyState>No zones yet. A zone is one bed, rack, or rooftop section growing one crop.</EmptyState>
+        <EmptyState title="No zones yet">A zone is one bed, rack, or rooftop section growing one crop. Add the first one with “New zone”.</EmptyState>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {farm.zones.map((zone) => {
-          const latest = zone.latest_reading
-          const status = latest ? MOISTURE_STATUS[latest.moisture_status] : null
-          const canEnter = farm.is_active && zone.is_active
-
-          return (
-            <div key={zone.id} className="flex flex-col rounded-xl border border-stone-200 bg-white p-5">
-              <div className="flex items-start justify-between gap-3">
-                <Link to={`/zones/${zone.id}`} className="text-lg font-semibold text-stone-900 hover:text-green-700">
-                  {zone.name}
-                </Link>
-                {!zone.is_active ? (
-                  <InactiveBadge />
-                ) : status ? (
-                  <Badge className={status.badge}>{status.label}</Badge>
-                ) : (
-                  <Badge className="bg-stone-100 text-stone-600">No readings</Badge>
-                )}
-              </div>
-              <p className="text-sm text-stone-600">
-                {zone.crop.name} · {ENVIRONMENT_LABEL[zone.environment]} · {formatNumber(zone.water_factor)} L per point
-              </p>
-              <p className="mt-2 text-sm text-stone-500">
-                {latest
-                  ? `Soil moisture ${formatNumber(latest.soil_moisture)}% · ${formatDateTime(latest.recorded_at)}`
-                  : 'Nothing recorded yet.'}
-              </p>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                {canEnter && (
-                  <Link to={`/zones/${zone.id}/readings/new`} className={btnPrimary}>
-                    Enter reading
-                  </Link>
-                )}
-                <Link to={`/zones/${zone.id}`} className={btnSmall}>
-                  History
-                </Link>
-                <button type="button" className={btnSmall} onClick={() => setEditing(zone)}>
-                  Edit
-                </button>
-              </div>
-            </div>
-          )
-        })}
+      <div className="grid gap-3 sm:grid-cols-2 lg:gap-4 xl:grid-cols-3">
+        {farm.zones.map((zone) => (
+          <ZoneCard key={zone.id} zone={zone} canEnter={farm.is_active} showWaterFactor>
+            <Link to={`/zones/${zone.id}`} className={btnSmall}>
+              <AppIcon name="history" className="h-4 w-4" />
+              History
+            </Link>
+            <button type="button" className={btnSmall} onClick={() => setEditing(zone)}>
+              <AppIcon name="pencil" className="h-4 w-4" />
+              Edit
+            </button>
+          </ZoneCard>
+        ))}
       </div>
 
       {editing && (
@@ -227,14 +203,7 @@ function ZoneForm({ farmId, zone, onClose, onSaved }) {
           </div>
         )}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className={btnSecondary} onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" className={btnPrimary} disabled={saving}>
-            {saving ? 'Saving…' : 'Save zone'}
-          </button>
-        </div>
+        <FormActions onCancel={onClose} saving={saving} saveLabel={'Save zone'} />
       </form>
     </Modal>
   )

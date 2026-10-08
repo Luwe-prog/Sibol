@@ -48,6 +48,17 @@ const longDateFormat = new Intl.DateTimeFormat('en-PH', { month: 'long', day: 'n
 // For a date input value such as "2026-10-08".
 export const formatDateValue = (dateValue) => longDateFormat.format(new Date(`${dateValue}T00:00:00`))
 
+// Whole days since a time, for "No reading for 3 days".
+export const daysSince = (value) => Math.floor((Date.now() - new Date(value).getTime()) / 86400000)
+
+// "TS" for "Teresa Santos": the first letters of the first and last names.
+export const initials = (name) => {
+  const parts = String(name ?? '').trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  const letters = parts.length === 1 ? parts[0].slice(0, 2) : parts[0][0] + parts[parts.length - 1][0]
+  return letters.toUpperCase()
+}
+
 // A date input gives "2026-10-08" in the device's time zone; the API wants exact instants.
 export const startOfDayIso = (dateValue) => new Date(`${dateValue}T00:00:00`).toISOString()
 export const endOfDayIso = (dateValue) => new Date(`${dateValue}T23:59:59.999`).toISOString()

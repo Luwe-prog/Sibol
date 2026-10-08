@@ -8,7 +8,7 @@ import useFetch from '../hooks/useFetch.js'
 import { describeEstimate } from '../lib/estimate.js'
 import { formatNumber } from '../lib/format.js'
 import { ENVIRONMENT_LABEL } from '../lib/status.js'
-import { btnPrimary, btnSecondary, linkClass } from '../lib/styles.js'
+import { btnPrimary, btnSecondary } from '../lib/styles.js'
 
 export default function ZonePage() {
   const { zoneId } = useParams()
@@ -27,14 +27,9 @@ export default function ZonePage() {
 
   return (
     <div>
-      <p className="mb-2 text-sm">
-        <Link to={`/farms/${zone.farm.id}`} className={linkClass}>
-          ← {zone.farm.name}
-        </Link>
-      </p>
-
       <PageHeader
         title={zone.name}
+        back={{ to: `/farms/${zone.farm.id}`, label: zone.farm.name }}
         subtitle={`${crop.name} · ${ENVIRONMENT_LABEL[zone.environment]} · ${formatNumber(zone.water_factor)} L per point`}
       >
         {canEnter ? (
@@ -52,7 +47,7 @@ export default function ZonePage() {
       </PageHeader>
 
       {zone.is_active && (
-        <div className="mb-8 rounded-xl border border-stone-200 bg-white p-4">
+        <div className="mb-8 rounded-2xl border border-stone-200 bg-white p-4">
           <p className="text-sm font-medium text-stone-600">Next watering</p>
           {estimate.short && <p className="mt-1 text-xl font-semibold text-stone-900">{estimate.short}</p>}
           <p className="mt-1 text-sm text-stone-600">{estimate.detail}</p>

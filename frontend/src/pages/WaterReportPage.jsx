@@ -82,7 +82,7 @@ export default function WaterReportPage() {
           </button>
         </PageHeader>
 
-        <div className="mb-5 grid grid-cols-2 gap-3 rounded-xl border border-stone-200 bg-white p-4 sm:grid-cols-3">
+        <div className="mb-5 grid grid-cols-2 gap-3 rounded-2xl border border-stone-200 bg-white p-4 sm:grid-cols-3">
           <FormField
             label="From"
             id="report_from"
@@ -153,7 +153,7 @@ export default function WaterReportPage() {
                 />
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white print:overflow-visible">
+              <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white print:overflow-visible">
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-stone-200 bg-stone-50 text-stone-600">
                     <tr>
@@ -218,7 +218,7 @@ export default function WaterReportPage() {
 
 function Tile({ label, value, note }) {
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-4">
+    <div className="rounded-2xl border border-stone-200 bg-white p-4">
       <p className="text-sm text-stone-600">{label}</p>
       <p className="mt-1 text-2xl font-semibold text-stone-900">{value}</p>
       {note && <p className="text-sm text-stone-500">{note}</p>}

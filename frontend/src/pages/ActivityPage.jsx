@@ -107,7 +107,7 @@ export default function ActivityPage() {
 
       {entries.length > 0 && (
         <>
-          <ul className="divide-y divide-stone-100 rounded-xl border border-stone-200 bg-white">
+          <ul className="divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white">
             {entries.map((entry) => (
               <li key={entry.id} className="px-4 py-3">
                 <p className="text-stone-900">{entry.description}</p>

@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import api, { readError } from '../api/client.js'
 import FormField from '../components/FormField.jsx'
-import { Checkbox, EmptyState, ErrorAlert, InactiveBadge, Loading, Modal, PageHeader } from '../components/ui.jsx'
+import { Checkbox, EmptyState, ErrorAlert, InactiveBadge, FormActions, Loading, Modal, PageHeader } from '../components/ui.jsx'
 import { useAuth } from '../context/useAuth.js'
 import useFetch from '../hooks/useFetch.js'
-import { btnPrimary, btnSecondary, btnSmall } from '../lib/styles.js'
+import { btnPrimary, btnSmall } from '../lib/styles.js'
 
 export default function FarmsPage() {
   const { isSuperAdmin } = useAuth()
@@ -41,7 +41,7 @@ export default function FarmsPage() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         {farms.map((farm) => (
-          <div key={farm.id} className="flex flex-col rounded-xl border border-stone-200 bg-white p-5">
+          <div key={farm.id} className="flex flex-col rounded-2xl border border-stone-200 bg-white p-5">
             <div className="flex items-start justify-between gap-3">
               <Link to={`/farms/${farm.id}`} className="text-lg font-semibold text-stone-900 hover:text-green-700">
                 {farm.name}
@@ -191,14 +191,7 @@ function FarmForm({ farm, onClose, onSaved }) {
           </div>
         )}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className={btnSecondary} onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" className={btnPrimary} disabled={saving}>
-            {saving ? 'Saving…' : 'Save farm'}
-          </button>
-        </div>
+        <FormActions onCancel={onClose} saving={saving} saveLabel={'Save farm'} />
       </form>
     </Modal>
   )

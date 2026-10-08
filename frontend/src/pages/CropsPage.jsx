@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import api, { readError } from '../api/client.js'
 import FormField from '../components/FormField.jsx'
-import { Checkbox, ErrorAlert, InactiveBadge, Loading, Modal, PageHeader } from '../components/ui.jsx'
+import { Checkbox, ErrorAlert, InactiveBadge, FormActions, Loading, Modal, PageHeader } from '../components/ui.jsx'
 import useFetch from '../hooks/useFetch.js'
 import { formatNumber } from '../lib/format.js'
-import { btnPrimary, btnSecondary, btnSmall } from '../lib/styles.js'
+import { btnPrimary, btnSmall } from '../lib/styles.js'
 
 export default function CropsPage() {
   const { data, error, loading, reload } = useFetch('/super-admin/crops')
@@ -25,7 +25,7 @@ export default function CropsPage() {
       {loading && <Loading />}
 
       {!loading && !error && (
-        <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-stone-200 bg-stone-50 text-stone-600">
               <tr>
@@ -199,14 +199,7 @@ function CropForm({ crop, onClose, onSaved }) {
           Changing these ranges affects new readings only. Past readings keep the status they were given.
         </p>
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className={btnSecondary} onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" className={btnPrimary} disabled={saving}>
-            {saving ? 'Saving…' : 'Save crop'}
-          </button>
-        </div>
+        <FormActions onCancel={onClose} saving={saving} saveLabel={'Save crop'} />
       </form>
     </Modal>
   )
