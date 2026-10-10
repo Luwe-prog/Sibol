@@ -20,11 +20,6 @@ export default function ReadingResultPage() {
   return <ReadingResult key={data.reading.id} reading={data.reading} onChanged={reload} />
 }
 
-const HEADLINE = {
-  optimal: 'No water needed now',
-  too_wet: 'Don’t water',
-}
-
 function ReadingResult({ reading, onChanged }) {
   const navigate = useNavigate()
   const zone = reading.zone
@@ -60,7 +55,7 @@ function ReadingResult({ reading, onChanged }) {
       <ErrorAlert>{error}</ErrorAlert>
 
       {/* The loudest thing in the app: the status, and the liters when the zone is dry. */}
-      <section role="status" className={`relative overflow-hidden rounded-[20px] border-2 p-5 lg:px-7 lg:py-6 ${status.tile}`}>
+      <section role="status" className={`relative overflow-hidden rounded-xl border-2 p-5 lg:px-7 lg:py-6 ${status.tile}`}>
         <p className={`flex items-center gap-2.5 text-3xl font-bold ${status.text}`}>
           <AppIcon name={status.icon} className="h-8 w-8" />
           {status.label}
@@ -76,15 +71,16 @@ function ReadingResult({ reading, onChanged }) {
               <span className="ml-1.5 text-4xl font-bold">L</span>
             </p>
           </div>
-        ) : (
-          <p className={`mt-3 text-2xl font-bold ${status.num}`}>{HEADLINE[reading.moisture_status]}</p>
-        )}
+        ) : null}
 
-        <p className={`mt-3 text-base leading-relaxed lg:text-[17px] ${status.num}`}>{reading.recommendation_text}</p>
+        {/* When the zone is not dry, the advice itself is the headline ("No watering needed." / "Hold off watering…"). */}
+        <p className={isDry ? `mt-3 text-base leading-relaxed lg:text-[17px] ${status.num}` : `mt-3 text-xl font-semibold leading-snug ${status.num}`}>
+          {reading.recommendation_text}
+        </p>
       </section>
 
       {!isDry && estimate?.short && (
-        <p className="flex items-center gap-2 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-[15px] text-stone-700">
+        <p className="flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-3 text-[15px] text-stone-700">
           <AppIcon name="calendar" className="text-green-800" />
           <span>
             <span className="font-semibold text-green-900">{estimate.short}.</span> An estimate for this zone from its recent readings.
@@ -93,7 +89,7 @@ function ReadingResult({ reading, onChanged }) {
       )}
 
       {reading.is_suspicious && (
-        <p className="flex items-start gap-2 rounded-2xl border border-orange-300 bg-orange-50 px-4 py-3 text-[15px] text-orange-900">
+        <p className="flex items-start gap-2 rounded-xl border border-orange-300 bg-orange-50 px-4 py-3 text-[15px] text-orange-900">
           <AppIcon name="warning" className="mt-0.5 h-5 w-5 text-orange-800" />
           <span>
             <span className="font-semibold">Marked as unusual.</span> {reading.suspicious_reason}
@@ -104,8 +100,8 @@ function ReadingResult({ reading, onChanged }) {
       <WaterApplied reading={reading} isDry={isDry} onChanged={onChanged} />
 
       <section className={cardClass}>
-        <h2 className="border-b border-stone-200 px-4 py-3.5 text-lg font-semibold text-green-950 sm:px-5">What you entered</h2>
-        <dl className="divide-y divide-stone-200 px-4 sm:px-5">
+        <h2 className="border-b border-line px-4 py-3.5 text-lg font-semibold text-charcoal sm:px-5">What you entered</h2>
+        <dl className="divide-y divide-line px-4 sm:px-5">
           <ValueRow icon="droplet" label="Soil moisture" value={`${formatNumber(reading.soil_moisture)}%`} status={status} />
           <ValueRow icon="thermometer" label="Temperature" value={`${formatNumber(reading.temperature)} °C`} status={TEMP_STATUS[reading.temp_status]} />
           <ValueRow icon="wind" label="Humidity" value={`${formatNumber(reading.humidity)}%`} status={HUMIDITY_STATUS[reading.humidity_status]} />
@@ -236,7 +232,7 @@ function WaterApplied({ reading, isDry, onChanged }) {
   return (
     <form onSubmit={save} className={`${cardClass} space-y-3.5 p-4 lg:p-6`}>
       <div>
-        <h2 className="text-lg font-semibold text-green-950">How much water did you actually use?</h2>
+        <h2 className="text-lg font-semibold text-charcoal">How much water did you actually use?</h2>
         <p className="mt-1 text-[15px] text-stone-600">
           After you water, type the liters you really poured. Sibol compares it with what it recommended, in the Water report.
           {!isDry && ' If you did not water, type 0.'}
@@ -244,7 +240,7 @@ function WaterApplied({ reading, isDry, onChanged }) {
       </div>
 
       <div className="grid grid-cols-[1fr_1.2fr] items-end gap-2.5">
-        <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5">
+        <div className="rounded-lg border border-line bg-cream px-3 py-2.5">
           <p className="text-xs text-stone-600">Sibol recommended</p>
           <p className="text-2xl font-bold tabular-nums text-stone-900">{recommended} L</p>
         </div>
@@ -263,7 +259,7 @@ function WaterApplied({ reading, isDry, onChanged }) {
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
               aria-invalid={error ? true : undefined}
-              className={`h-14 w-full rounded-xl border bg-white pl-4 pr-10 text-2xl font-semibold tabular-nums text-stone-900 focus:border-green-700 focus:outline-none focus:ring-2 focus:ring-green-700 ${error ? 'border-red-700' : 'border-stone-500'}`}
+              className={`h-14 w-full rounded-lg border bg-white pl-4 pr-10 text-2xl font-semibold tabular-nums text-stone-900 focus:border-green-700 focus:outline-none focus:ring-2 focus:ring-green-700 ${error ? 'border-red-700' : 'border-field'}`}
             />
             <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-lg font-semibold text-stone-600">L</span>
           </div>
@@ -303,7 +299,7 @@ function WaterApplied({ reading, isDry, onChanged }) {
 
 function SummaryBox({ label, value }) {
   return (
-    <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5">
+    <div className="rounded-lg border border-line bg-cream px-3 py-2.5">
       <dt className="text-xs text-stone-600">{label}</dt>
       <dd className="mt-0.5 text-lg font-bold tabular-nums text-stone-900">{value}</dd>
     </div>

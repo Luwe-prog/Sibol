@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { downloadFile, readError } from '../api/client.js'
 import FormField from '../components/FormField.jsx'
+import { AppIcon } from '../components/icons.jsx'
 import { EmptyState, ErrorAlert, InactiveBadge, Loading, PageHeader } from '../components/ui.jsx'
 import useFetch from '../hooks/useFetch.js'
 import { dateInputValue, endOfDayIso, formatDateTime, formatDateValue, formatNumber, startOfDayIso } from '../lib/format.js'
 import { ENVIRONMENT_LABEL } from '../lib/status.js'
-import { btnPrimary, btnSecondary } from '../lib/styles.js'
 
 const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -36,7 +36,7 @@ export default function WaterReportPage() {
       }
     : null
 
-  const { data: report, error, loading } = useFetch(ready ? `/reports/water?${new URLSearchParams(params)}` : null)
+  const { data: report, error, loading, reload } = useFetch(ready ? `/reports/water?${new URLSearchParams(params)}` : null)
 
   const download = async (path, fallbackName) => {
     setDownloadError('')
@@ -58,183 +58,175 @@ export default function WaterReportPage() {
     : 'All farms'
 
   return (
-    <div>
+    <>
+      <PageHeader title="Water report" subtitle="Water recommended by the system compared with water actually applied.">
+        <button type="button" className="btn btn-primary" disabled={!report} onClick={print}>
+          <AppIcon name="printer" />
+          Print / Save as PDF
+        </button>
+        <button type="button" className="btn btn-secondary" disabled={!ready} onClick={() => download('/reports/water.csv', 'sibol-water-report.csv')}>
+          <AppIcon name="download" />
+          Report CSV
+        </button>
+        <button type="button" className="btn btn-secondary" disabled={!ready} onClick={() => download('/reports/readings.csv', 'sibol-readings.csv')}>
+          <AppIcon name="download" />
+          All readings CSV
+        </button>
+      </PageHeader>
+
+      <section className="card filter-card">
+        <FormField
+          label="From date"
+          id="report_from"
+          type="date"
+          required
+          max={filters.to || undefined}
+          value={filters.from}
+          onChange={(event) => setFilter('from', event.target.value)}
+        />
+        <FormField
+          label="To date"
+          id="report_to"
+          type="date"
+          required
+          min={filters.from || undefined}
+          max={dateInputValue()}
+          value={filters.to}
+          onChange={(event) => setFilter('to', event.target.value)}
+        />
+        <FormField label="Farm" id="report_farm" as="select" value={filters.farm_id} onChange={(event) => setFilter('farm_id', event.target.value)}>
+          <option value="">All farms</option>
+          {farms.data?.farms.map((farm) => (
+            <option key={farm.id} value={farm.id}>
+              {farm.name}
+            </option>
+          ))}
+        </FormField>
+      </section>
+
       <div className="print:hidden">
-        <PageHeader title="Water report" subtitle="Water recommended by the system compared with water actually applied.">
-          <button type="button" className={btnPrimary} disabled={!report} onClick={print}>
-            Print / Save as PDF
-          </button>
-          <button
-            type="button"
-            className={btnSecondary}
-            disabled={!ready}
-            onClick={() => download('/reports/water.csv', 'sibol-water-report.csv')}
-          >
-            Report CSV
-          </button>
-          <button
-            type="button"
-            className={btnSecondary}
-            disabled={!ready}
-            onClick={() => download('/reports/readings.csv', 'sibol-readings.csv')}
-          >
-            All readings CSV
-          </button>
-        </PageHeader>
-
-        <div className="mb-5 grid grid-cols-2 gap-3 rounded-2xl border border-stone-200 bg-white p-4 sm:grid-cols-3">
-          <FormField
-            label="From"
-            id="report_from"
-            type="date"
-            required
-            max={filters.to || undefined}
-            value={filters.from}
-            onChange={(event) => setFilter('from', event.target.value)}
-          />
-          <FormField
-            label="To"
-            id="report_to"
-            type="date"
-            required
-            min={filters.from || undefined}
-            max={dateInputValue()}
-            value={filters.to}
-            onChange={(event) => setFilter('to', event.target.value)}
-          />
-          <div className="col-span-2 sm:col-span-1">
-            <FormField
-              label="Farm"
-              id="report_farm"
-              as="select"
-              value={filters.farm_id}
-              onChange={(event) => setFilter('farm_id', event.target.value)}
-            >
-              <option value="">All farms</option>
-              {farms.data?.farms.map((farm) => (
-                <option key={farm.id} value={farm.id}>
-                  {farm.name}
-                </option>
-              ))}
-            </FormField>
-          </div>
-        </div>
-
-        <ErrorAlert>{error || downloadError}</ErrorAlert>
+        <ErrorAlert onRetry={error ? reload : undefined}>{error || downloadError}</ErrorAlert>
       </div>
 
-      {/* Heading for the printed page; the on-screen header and filters are hidden in print. */}
+      {/* Details for the printed page; the buttons and filters are hidden in print. */}
       <div className="mb-4 hidden print:block">
-        <h1 className="text-2xl font-semibold text-stone-900">Sibol water report</h1>
         {ready && (
-          <p className="text-stone-700">
+          <p>
             {formatDateValue(filters.from)} to {formatDateValue(filters.to)} · {farmName}
           </p>
         )}
-        {printedAt && <p className="text-sm text-stone-500">Printed {formatDateTime(printedAt)}</p>}
+        {printedAt && <p className="muted">Printed {formatDateTime(printedAt)}</p>}
       </div>
 
       {loading && <Loading />}
 
-      {report && !error && (
+      {report && !error && report.farms.length === 0 && (
+        <EmptyState icon="report" title="No readings in this date range">
+          Try a wider range, or another farm.
+        </EmptyState>
+      )}
+
+      {report && !error && report.farms.length > 0 && (
         <>
-          {report.farms.length === 0 ? (
-            <EmptyState>No readings in this date range.</EmptyState>
-          ) : (
-            <>
-              <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <Tile label="Recommended" value={`${formatNumber(report.totals.recommended_liters)} L`} />
-                <Tile label="Applied" value={`${formatNumber(report.totals.applied_liters)} L`} />
-                <Tile label="Difference" value={describeDifference(report.totals.difference_liters)} />
-                <Tile
-                  label="Water applied not recorded"
-                  value={`${report.totals.not_recorded_count} of ${report.totals.readings_count}`}
-                  note="readings"
-                />
-              </div>
+          <div className="stat-grid report-stats">
+            <Stat label="Recommended" value={`${formatNumber(report.totals.recommended_liters)} L`} />
+            <Stat label="Applied" value={`${formatNumber(report.totals.applied_liters)} L`} />
+            <Stat label="Difference" value={describeDifference(report.totals.difference_liters)} />
+            <Stat
+              label="Water applied not recorded"
+              value={`${report.totals.not_recorded_count} of ${report.totals.readings_count}`}
+              hint="readings"
+            />
+          </div>
 
-              <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white print:overflow-visible">
-                <table className="w-full text-left text-sm">
-                  <thead className="border-b border-stone-200 bg-stone-50 text-stone-600">
-                    <tr>
-                      <th className="px-3 py-2 font-medium">Zone</th>
-                      <th className="whitespace-nowrap px-3 py-2 text-right font-medium">Readings</th>
-                      <th className="whitespace-nowrap px-3 py-2 text-right font-medium">Not recorded</th>
-                      <th className="whitespace-nowrap px-3 py-2 text-right font-medium">Recommended</th>
-                      <th className="whitespace-nowrap px-3 py-2 text-right font-medium">Applied</th>
-                      <th className="whitespace-nowrap px-3 py-2 text-right font-medium">Difference</th>
+          <section className="card table-card">
+            <div className="section-heading">
+              <h2>Water use by farm</h2>
+              <AppIcon name="droplet" />
+            </div>
+            <table className="data-table report-table">
+              <thead>
+                <tr>
+                  <th scope="col">Zone</th>
+                  <th scope="col">Readings</th>
+                  <th scope="col">Not recorded</th>
+                  <th scope="col">Recommended</th>
+                  <th scope="col">Applied</th>
+                  <th scope="col">Difference</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.farms.map((farm) => (
+                  <Fragment key={farm.id}>
+                    <tr className="farm-table-heading">
+                      <td colSpan={6}>
+                        <AppIcon name="leaf" />
+                        {farm.name}
+                      </td>
                     </tr>
-                  </thead>
-                  {report.farms.map((farm) => (
-                    <tbody key={farm.id} className="divide-y divide-stone-100 border-b border-stone-200">
-                      <tr className="bg-stone-50">
-                        <th colSpan={6} scope="colgroup" className="px-3 py-2 text-left font-semibold text-stone-900">
-                          {farm.name}
-                        </th>
+                    {farm.zones.map((zone) => (
+                      <tr key={zone.id}>
+                        <td>
+                          <strong>
+                            <Link to={`/zones/${zone.id}`}>{zone.name}</Link>
+                          </strong>{' '}
+                          {!zone.is_active && <InactiveBadge />}
+                          <span className="table-subtext">
+                            {zone.crop} · {ENVIRONMENT_LABEL[zone.environment]}
+                          </span>
+                        </td>
+                        <Figures figures={zone} />
                       </tr>
-                      {farm.zones.map((zone) => (
-                        <tr key={zone.id}>
-                          <td className="px-3 py-2">
-                            <Link to={`/zones/${zone.id}`} className="font-medium text-stone-900 hover:text-green-700">
-                              {zone.name}
-                            </Link>{' '}
-                            {!zone.is_active && <InactiveBadge />}
-                            <span className="block text-stone-500">
-                              {zone.crop} · {ENVIRONMENT_LABEL[zone.environment]}
-                            </span>
-                          </td>
-                          <Figures figures={zone} />
-                        </tr>
-                      ))}
-                      <tr className="font-medium text-stone-900">
-                        <td className="px-3 py-2">Total for {farm.name}</td>
-                        <Figures figures={farm.totals} />
-                      </tr>
-                    </tbody>
-                  ))}
-                  {report.farms.length > 1 && (
-                    <tfoot>
-                      <tr className="bg-stone-50 font-semibold text-stone-900">
-                        <td className="px-3 py-2">All farms</td>
-                        <Figures figures={report.totals} />
-                      </tr>
-                    </tfoot>
-                  )}
-                </table>
-              </div>
+                    ))}
+                    <tr className="farm-total">
+                      <td>{farm.name} total</td>
+                      <Figures figures={farm.totals} />
+                    </tr>
+                  </Fragment>
+                ))}
+                {report.farms.length > 1 && (
+                  <tr className="grand-total">
+                    <td>All farms</td>
+                    <Figures figures={report.totals} />
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </section>
 
-              <p className="mt-3 text-sm text-stone-600">
-                Recommended and applied liters are compared only for readings where the water applied was recorded.
-                Readings without it are counted under "Not recorded" and left out of both totals. "Over" means more
-                water was applied than recommended; "under" means less.
-              </p>
-            </>
-          )}
+          <p className="report-note">
+            <AppIcon name="info" />
+            <span>
+              Only readings with water applied recorded are compared. Readings without it are counted under “Not recorded”
+              and left out of both totals. “Over” means more water was applied than recommended; “under” means less.
+            </span>
+          </p>
         </>
       )}
-    </div>
+    </>
   )
 }
 
-function Tile({ label, value, note }) {
+function Stat({ label, value, hint }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-4">
-      <p className="text-sm text-stone-600">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-stone-900">{value}</p>
-      {note && <p className="text-sm text-stone-500">{note}</p>}
-    </div>
+    <section className="card report-stat">
+      <span className="muted">{label}</span>
+      <strong>{value}</strong>
+      {hint && <span className="muted">{hint}</span>}
+    </section>
   )
 }
 
+// data-label is what a phone shows beside each number, where the table becomes stacked cards.
 function Figures({ figures }) {
   return (
     <>
-      <td className="whitespace-nowrap px-3 py-2 text-right">{figures.readings_count}</td>
-      <td className="whitespace-nowrap px-3 py-2 text-right">{figures.not_recorded_count}</td>
-      <td className="whitespace-nowrap px-3 py-2 text-right">{formatNumber(figures.recommended_liters)} L</td>
-      <td className="whitespace-nowrap px-3 py-2 text-right">{formatNumber(figures.applied_liters)} L</td>
-      <td className="whitespace-nowrap px-3 py-2 text-right">
-        {figures.compared_count === 0 ? <span className="text-stone-400">nothing to compare</span> : describeDifference(figures.difference_liters)}
+      <td data-label="Readings">{figures.readings_count}</td>
+      <td data-label="Not recorded">{figures.not_recorded_count}</td>
+      <td data-label="Recommended">{formatNumber(figures.recommended_liters)} L</td>
+      <td data-label="Applied">{formatNumber(figures.applied_liters)} L</td>
+      <td data-label="Difference">
+        {figures.compared_count === 0 ? <span className="muted">Nothing to compare</span> : describeDifference(figures.difference_liters)}
       </td>
     </>
   )

@@ -8,9 +8,9 @@ import { ErrorAlert } from './ui.jsx'
 const RANGES = [7, 30, 90]
 
 // Chart colors are hex because Recharts takes them as SVG attributes, not class names.
-const LINE_COLOR = '#2a78d6'
-const BAND_COLOR = '#0ca30c'
-const GRID_COLOR = '#e7e5e4'
+const LINE_COLOR = '#14532D' // forest
+const BAND_COLOR = '#DCE8D8' // sage
+const GRID_COLOR = '#E6E9E3'
 const AXIS_TEXT = { fill: '#78716c', fontSize: 12 }
 
 const rangeButtonClass = (selected) =>
@@ -115,10 +115,10 @@ function MeasureChart({ measure, domain, points, loading, days, height, crop }) 
   const currentMax = crop[maxKey]
 
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-4">
+    <div className="rounded-lg border border-line bg-white p-4">
       <p className="font-medium text-stone-900">{title}</p>
       <p className="mb-2 flex items-center gap-2 text-sm text-stone-500">
-        <span className="inline-block h-3 w-3 rounded-sm border border-green-600/40 bg-green-600/20" aria-hidden="true" />
+        <span className="inline-block h-3 w-3 rounded-sm border border-green-300 bg-sage" aria-hidden="true" />
         {steady ? 'Ideal' : 'Ideal range changed in this period. Now'} {formatNumber(currentMin)}–{formatNumber(currentMax)}
         {unit}
       </p>
@@ -132,13 +132,13 @@ function MeasureChart({ measure, domain, points, loading, days, height, crop }) 
           <ComposedChart data={points} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             {steady ? (
-              <ReferenceArea y1={first[0]} y2={first[1]} fill={BAND_COLOR} fillOpacity={0.12} stroke="none" ifOverflow="hidden" />
+              <ReferenceArea y1={first[0]} y2={first[1]} fill={BAND_COLOR} fillOpacity={0.85} stroke="none" ifOverflow="hidden" />
             ) : (
               <Area
                 type="stepAfter"
                 dataKey={bandKey}
                 fill={BAND_COLOR}
-                fillOpacity={0.12}
+                fillOpacity={0.85}
                 stroke="none"
                 activeDot={false}
                 isAnimationActive={false}
@@ -189,7 +189,7 @@ function PointTooltip({ active, payload, title, unit, valueKey, statusKey, statu
   const point = payload[0].payload
 
   return (
-    <div className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm shadow-md">
+    <div className="rounded-lg border border-line bg-white px-3 py-2 text-sm shadow-md">
       <p className="text-stone-500">{formatDateTime(point.recorded_at)}</p>
       <p className="font-medium text-stone-900">
         {title}: {formatNumber(point[valueKey])}

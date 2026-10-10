@@ -13,6 +13,7 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage.jsx'))
 const FarmHistoryPage = lazy(() => import('./pages/FarmHistoryPage.jsx'))
 const FarmPage = lazy(() => import('./pages/FarmPage.jsx'))
 const FarmsPage = lazy(() => import('./pages/FarmsPage.jsx'))
+const LandingPage = lazy(() => import('./pages/LandingPage.jsx'))
 const ReadingFormPage = lazy(() => import('./pages/ReadingFormPage.jsx'))
 const ReadingResultPage = lazy(() => import('./pages/ReadingResultPage.jsx'))
 const WaterReportPage = lazy(() => import('./pages/WaterReportPage.jsx'))
@@ -33,7 +34,7 @@ function AppRoutes() {
         <Route path="/login" element={<LoginPage />} />
       </Route>
 
-      <Route element={<RequireAuth />}>
+      <Route element={<RequireAuth landing={<LandingPage />} />}>
         <Route path="/change-password" element={<ChangePasswordPage />} />
 
         <Route element={<RequirePasswordChanged />}>

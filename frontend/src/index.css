@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* One typeface for the whole app. The font files are bundled (see main.jsx). */
+body {
+  font-family: 'DM Sans Variable', system-ui, sans-serif;
+}

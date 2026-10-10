@@ -47,7 +47,7 @@ export default function ZonePage() {
       </PageHeader>
 
       {zone.is_active && (
-        <div className="mb-8 rounded-2xl border border-stone-200 bg-white p-4">
+        <div className="mb-8 rounded-xl border border-line bg-white p-4">
           <p className="text-sm font-medium text-stone-600">Next watering</p>
           {estimate.short && <p className="mt-1 text-xl font-semibold text-stone-900">{estimate.short}</p>}
           <p className="mt-1 text-sm text-stone-600">{estimate.detail}</p>

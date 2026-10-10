@@ -50,7 +50,7 @@ export default function FarmPage() {
       </PageHeader>
 
       {!farm.is_active && (
-        <p className="mb-4 flex items-start gap-2 rounded-2xl border border-stone-300 bg-stone-100 px-4 py-3 text-[15px] text-stone-700">
+        <p className="mb-4 flex items-start gap-2 rounded-xl border border-stone-300 bg-stone-100 px-4 py-3 text-[15px] text-stone-700">
           <AppIcon name="ban" className="mt-0.5 h-5 w-5" />
           This farm is inactive. Its zones and history can be viewed, but no new zones or readings can be added.
         </p>
@@ -60,7 +60,7 @@ export default function FarmPage() {
         <EmptyState title="No zones yet">A zone is one bed, rack, or rooftop section growing one crop. Add the first one with “New zone”.</EmptyState>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:gap-4 xl:grid-cols-3">
+      <div className="zone-grid">
         {farm.zones.map((zone) => (
           <ZoneCard key={zone.id} zone={zone} canEnter={farm.is_active} showWaterFactor>
             <Link to={`/zones/${zone.id}`} className={btnSmall}>

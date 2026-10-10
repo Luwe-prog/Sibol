@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import api, { readError } from '../api/client.js'
 import FormField from '../components/FormField.jsx'
-import { Checkbox, EmptyState, ErrorAlert, InactiveBadge, FormActions, Loading, Modal, PageHeader } from '../components/ui.jsx'
+import { AppIcon } from '../components/icons.jsx'
+import { Checkbox, EmptyState, ErrorAlert, FormActions, Loading, Modal, PageHeader } from '../components/ui.jsx'
 import { useAuth } from '../context/useAuth.js'
 import useFetch from '../hooks/useFetch.js'
-import { btnPrimary, btnSmall } from '../lib/styles.js'
 
 export default function FarmsPage() {
   const { isSuperAdmin } = useAuth()
@@ -22,55 +22,71 @@ export default function FarmsPage() {
         subtitle={isSuperAdmin ? 'All farms in the system.' : 'The farms you are assigned to.'}
       >
         {isSuperAdmin && (
-          <button type="button" className={btnPrimary} onClick={() => setEditing({})}>
+          <button type="button" className="btn btn-primary" onClick={() => setEditing({})}>
+            <AppIcon name="plus" />
             New farm
           </button>
         )}
       </PageHeader>
 
-      <ErrorAlert>{error}</ErrorAlert>
+      <ErrorAlert onRetry={reload}>{error}</ErrorAlert>
       {loading && <Loading />}
 
       {!loading && !error && farms.length === 0 && (
-        <EmptyState>
-          {isSuperAdmin
-            ? 'No farms yet. Create the first one with "New farm".'
-            : 'You are not assigned to any farm yet. Ask your Super Admin to assign you.'}
+        <EmptyState icon="leaf" title="No farms yet">
+          {isSuperAdmin ? 'Create the first one with “New farm”.' : 'You are not assigned to any farm yet. Ask your Super Admin to assign you.'}
         </EmptyState>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="farm-grid">
         {farms.map((farm) => (
-          <div key={farm.id} className="flex flex-col rounded-2xl border border-stone-200 bg-white p-5">
-            <div className="flex items-start justify-between gap-3">
-              <Link to={`/farms/${farm.id}`} className="text-lg font-semibold text-stone-900 hover:text-green-700">
-                {farm.name}
-              </Link>
-              {!farm.is_active && <InactiveBadge />}
+          <section key={farm.id} className={farm.is_active ? 'card farm-card' : 'card farm-card is-inactive'}>
+            <div className="farm-card-banner">
+              <AppIcon name="sprout" />
+              <div className="banner-tags">
+                {!farm.is_active && <span>Inactive</span>}
+                <span>
+                  {farm.zones_count} {farm.zones_count === 1 ? 'zone' : 'zones'}
+                </span>
+              </div>
+              <div className="farm-art" aria-hidden="true">
+                <AppIcon name="leaf" />
+                <AppIcon name="sprout" />
+                <AppIcon name="leaf" />
+              </div>
             </div>
-            {farm.location && <p className="text-sm text-stone-500">{farm.location}</p>}
-            {farm.description && <p className="mt-2 text-sm text-stone-600">{farm.description}</p>}
-
-            <p className="mt-3 text-sm text-stone-600">
-              {farm.zones_count} {farm.zones_count === 1 ? 'zone' : 'zones'}
-            </p>
-            {isSuperAdmin && (
-              <p className="text-sm text-stone-600">
-                Admins: {farm.users.length ? farm.users.map((admin) => admin.name).join(', ') : 'none assigned'}
-              </p>
-            )}
-
-            <div className="mt-4 flex gap-2">
-              <Link to={`/farms/${farm.id}`} className={btnSmall}>
-                Open
-              </Link>
-              {isSuperAdmin && (
-                <button type="button" className={btnSmall} onClick={() => setEditing(farm)}>
-                  Edit
-                </button>
+            <div className="farm-card-body">
+              <h2>{farm.name}</h2>
+              {farm.location && (
+                <p className="muted icon-line">
+                  <AppIcon name="map-pin" />
+                  {farm.location}
+                </p>
               )}
+              {farm.description && <p className="muted">{farm.description}</p>}
+              {isSuperAdmin && (
+                <div className="farm-admin">
+                  <span className="field-label">Assigned Admins</span>
+                  <span className="icon-line">
+                    <AppIcon name="users" />
+                    {farm.users.length ? farm.users.map((admin) => admin.name).join(', ') : 'None assigned yet'}
+                  </span>
+                </div>
+              )}
+              <div className="zone-actions">
+                <Link to={`/farms/${farm.id}`} className="btn btn-primary">
+                  Open farm
+                  <AppIcon name="arrow-right" />
+                </Link>
+                {isSuperAdmin && (
+                  <button type="button" className="btn btn-secondary" onClick={() => setEditing(farm)}>
+                    <AppIcon name="pencil" />
+                    Edit
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          </section>
         ))}
       </div>
 

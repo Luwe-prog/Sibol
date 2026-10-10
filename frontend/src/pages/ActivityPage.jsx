@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import FormField from '../components/FormField.jsx'
-import { EmptyState, ErrorAlert, Loading, PageHeader } from '../components/ui.jsx'
+import { AppIcon } from '../components/icons.jsx'
+import { EmptyState, ErrorAlert, Loading, PageHeader, Pagination } from '../components/ui.jsx'
 import useFetch from '../hooks/useFetch.js'
-import { formatDateTime } from '../lib/format.js'
-import { btnSmall } from '../lib/styles.js'
 
-const AREAS = [
-  { value: 'account', label: 'Accounts' },
-  { value: 'farm', label: 'Farms' },
-  { value: 'crop', label: 'Crop library' },
-  { value: 'zone', label: 'Zones' },
-  { value: 'reading', label: 'Readings' },
-]
+// The first part of an action name ("crop" in "crop.updated"), with its label and icon.
+const AREAS = {
+  account: { label: 'Accounts', icon: 'users' },
+  farm: { label: 'Farms', icon: 'leaf' },
+  crop: { label: 'Crop library', icon: 'sprout' },
+  zone: { label: 'Zones', icon: 'plus' },
+  reading: { label: 'Readings', icon: 'pencil' },
+}
 
 // Column names as stored, in plain words.
 const FIELD_LABELS = {
@@ -60,10 +60,15 @@ const show = (value) => {
   if (Array.isArray(value)) return value.join(', ')
   if (value === true || value === 1) return 'yes'
   if (value === false || value === 0) return 'no'
+  // Numbers stored as "100.00" read better as 100.
+  if (typeof value === 'string' && /^-?\d+\.\d+$/.test(value)) return String(Number(value))
   return String(value)
 }
 
-// Who changed what, newest first. Super Admins only.
+const dayFormat = new Intl.DateTimeFormat('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
+const timeFormat = new Intl.DateTimeFormat('en-PH', { hour: 'numeric', minute: '2-digit' })
+
+// Who changed what, newest first, grouped by day. Super Admins only.
 export default function ActivityPage() {
   const [area, setArea] = useState('')
   const [page, setPage] = useState(1)
@@ -71,16 +76,23 @@ export default function ActivityPage() {
   const params = new URLSearchParams({ page })
   if (area) params.set('area', area)
 
-  const { data, error, loading } = useFetch(`/super-admin/activity?${params}`)
+  const { data, error, loading, reload } = useFetch(`/super-admin/activity?${params}`)
 
   const entries = data?.entries ?? []
-  const meta = data?.meta
+
+  // Entries arrive newest first, so each new day starts a new group.
+  const days = []
+  entries.forEach((entry) => {
+    const day = dayFormat.format(new Date(entry.created_at))
+    if (days[days.length - 1]?.day !== day) days.push({ day, entries: [] })
+    days[days.length - 1].entries.push(entry)
+  })
 
   return (
-    <div>
+    <>
       <PageHeader title="Activity log" subtitle="A record of changes to accounts, farms, crops, zones and readings." />
 
-      <div className="mb-4 max-w-xs">
+      <div className="activity-filter">
         <FormField
           label="Show"
           id="activity_area"
@@ -92,57 +104,55 @@ export default function ActivityPage() {
           }}
         >
           <option value="">Everything</option>
-          {AREAS.map((option) => (
-            <option key={option.value} value={option.value}>
+          {Object.entries(AREAS).map(([value, option]) => (
+            <option key={value} value={value}>
               {option.label}
             </option>
           ))}
         </FormField>
       </div>
 
-      <ErrorAlert>{error}</ErrorAlert>
+      <ErrorAlert onRetry={reload}>{error}</ErrorAlert>
       {loading && <Loading />}
 
-      {!loading && !error && entries.length === 0 && <EmptyState>Nothing has been recorded yet.</EmptyState>}
-
-      {entries.length > 0 && (
-        <>
-          <ul className="divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white">
-            {entries.map((entry) => (
-              <li key={entry.id} className="px-4 py-3">
-                <p className="text-stone-900">{entry.description}</p>
-                <p className="text-sm text-stone-500">
-                  {entry.user ? entry.user.name : 'Command line'} · {formatDateTime(entry.created_at)}
-                </p>
-                <Changes changes={entry.changes} />
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-stone-600">
-            <p>
-              {meta.total} {meta.total === 1 ? 'entry' : 'entries'}
-              {meta.last_page > 1 && ` · page ${meta.current_page} of ${meta.last_page}`}
-            </p>
-            {meta.last_page > 1 && (
-              <div className="flex gap-2">
-                <button type="button" className={btnSmall} disabled={meta.current_page <= 1} onClick={() => setPage(page - 1)}>
-                  Newer
-                </button>
-                <button
-                  type="button"
-                  className={btnSmall}
-                  disabled={meta.current_page >= meta.last_page}
-                  onClick={() => setPage(page + 1)}
-                >
-                  Older
-                </button>
-              </div>
-            )}
-          </div>
-        </>
+      {!loading && !error && entries.length === 0 && (
+        <EmptyState icon="history" title="No activity yet">
+          Changes will appear here when you add or update accounts, farms, zones, crops or readings.
+        </EmptyState>
       )}
-    </div>
+
+      <div className="activity-days">
+        {days.map((group) => (
+          <section key={group.day}>
+            <h2 className="activity-date">{group.day}</h2>
+            <div className="card activity-card">
+              {group.entries.map((entry) => {
+                const kind = AREAS[entry.action.split('.')[0]] ?? { label: 'Other', icon: 'history' }
+                return (
+                  <div className="activity-entry" key={entry.id}>
+                    <span className="soft-icon">
+                      <AppIcon name={kind.icon} />
+                    </span>
+                    <div className="activity-copy">
+                      <h3>{entry.description}</h3>
+                      <p className="muted">
+                        {entry.user ? entry.user.name : 'Command line'}
+                        <span className="dot-separator">·</span>
+                        {timeFormat.format(new Date(entry.created_at))}
+                      </p>
+                      <Changes changes={entry.changes} />
+                    </div>
+                    <span className="activity-category">{kind.label}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      {entries.length > 0 && <Pagination meta={data.meta} noun="entry" plural="entries" onPage={setPage} />}
+    </>
   )
 }
 
@@ -157,24 +167,25 @@ function Changes({ changes }) {
   if (edited.length === 0 && others.length === 0) return null
 
   return (
-    <ul className="mt-2 space-y-0.5 text-sm text-stone-700">
+    <div className="change-list">
       {edited.map((field) => (
-        <li key={field}>
-          <span className="text-stone-500">{label(field)}:</span>{' '}
-          {field in before ? (
+        <div className="change-values" key={field}>
+          <span>{label(field)}</span>
+          {field in before && (
             <>
-              {show(before[field])} → <span className="font-medium text-stone-900">{show(after[field])}</span>
+              <span className="old-value">{show(before[field])}</span>
+              <AppIcon name="arrow-right" />
             </>
-          ) : (
-            <span className="font-medium text-stone-900">{show(after[field])}</span>
           )}
-        </li>
+          <strong>{show(after[field])}</strong>
+        </div>
       ))}
       {others.map((field) => (
-        <li key={field}>
-          <span className="text-stone-500">{label(field)}:</span> {show(other[field])}
-        </li>
+        <div className="change-values" key={field}>
+          <span>{label(field)}</span>
+          <strong>{show(other[field])}</strong>
+        </div>
       ))}
-    </ul>
+    </div>
   )
 }

@@ -18,7 +18,7 @@ function renderAt(path, user, loading = false) {
           <Route element={<GuestOnly />}>
             <Route path="/login" element={<p>login page</p>} />
           </Route>
-          <Route element={<RequireAuth />}>
+          <Route element={<RequireAuth landing={<p>landing page</p>} />}>
             <Route path="/change-password" element={<p>change password page</p>} />
             <Route element={<RequirePasswordChanged />}>
               <Route path="/" element={<p>dashboard page</p>} />
@@ -34,8 +34,14 @@ function renderAt(path, user, loading = false) {
 }
 
 describe('route guards', () => {
-  it('sends a visitor who is not logged in to the login page', () => {
+  it('shows the landing page at "/" to a visitor who is not logged in', () => {
     renderAt('/', null)
+    expect(screen.getByText('landing page')).toBeInTheDocument()
+    expect(screen.queryByText('dashboard page')).not.toBeInTheDocument()
+  })
+
+  it('sends a visitor who is not logged in to the login page from anywhere else', () => {
+    renderAt('/admin/crops', null)
     expect(screen.getByText('login page')).toBeInTheDocument()
   })
 

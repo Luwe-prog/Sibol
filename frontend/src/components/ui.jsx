@@ -15,8 +15,8 @@ export function PageHeader({ title, subtitle, back, children }) {
             {back.label}
           </Link>
         )}
-        <h1 className="text-2xl font-semibold tracking-tight text-green-950 lg:text-3xl">{title}</h1>
-        {subtitle && <p className="mt-1 text-[15px] text-stone-600">{subtitle}</p>}
+        <h1 className="page-title">{title}</h1>
+        {subtitle && <div className="page-subtitle">{subtitle}</div>}
       </div>
       {children && <div className="flex flex-wrap gap-2">{children}</div>}
     </div>
@@ -27,8 +27,8 @@ export function Card({ title, aside, children, className = '' }) {
   return (
     <section className={`${cardClass} ${className}`}>
       {title && (
-        <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-4 py-3.5 sm:px-5 sm:py-4">
-          <h2 className="text-lg font-semibold text-green-950">{title}</h2>
+        <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3.5 sm:px-5 sm:py-4">
+          <h2 className="text-lg font-semibold text-charcoal">{title}</h2>
           {aside}
         </div>
       )}
@@ -41,7 +41,7 @@ export function Card({ title, aside, children, className = '' }) {
 export function ErrorAlert({ children, onRetry }) {
   if (!children) return null
   return (
-    <div role="alert" className="mb-4 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">
+    <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
       <AppIcon name="alert-circle" className="mt-0.5 h-5 w-5" />
       <div>
         <p className="text-[15px] font-semibold">{children}</p>
@@ -49,7 +49,7 @@ export function ErrorAlert({ children, onRetry }) {
           <button
             type="button"
             onClick={onRetry}
-            className="mt-3 inline-flex h-11 items-center gap-2 rounded-xl border border-red-300 bg-white px-3.5 text-sm font-semibold text-red-800 hover:bg-red-50"
+            className="mt-3 inline-flex h-11 items-center gap-2 rounded-lg border border-red-300 bg-white px-3.5 text-sm font-semibold text-red-800 hover:bg-red-50"
           >
             <AppIcon name="refresh" className="h-4 w-4" />
             Try again
@@ -63,7 +63,7 @@ export function ErrorAlert({ children, onRetry }) {
 export function SuccessMessage({ children, onDismiss }) {
   if (!children) return null
   return (
-    <div role="status" className="mb-4 flex items-center gap-3 rounded-2xl border border-green-200 bg-green-50 py-1.5 pl-4 pr-1.5 text-green-800">
+    <div role="status" className="mb-4 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 py-1.5 pl-4 pr-1.5 text-green-800">
       <AppIcon name="optimal" className="h-5 w-5" />
       <p className="flex-1 text-[15px] font-semibold">{children}</p>
       {onDismiss ? (
@@ -71,7 +71,7 @@ export function SuccessMessage({ children, onDismiss }) {
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-xl hover:bg-green-100"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-lg hover:bg-green-100"
         >
           <AppIcon name="x" className="h-5 w-5" />
         </button>
@@ -93,11 +93,11 @@ export function Loading() {
 
 export function EmptyState({ icon = 'sprout', title, children }) {
   return (
-    <div className="flex flex-col items-center rounded-2xl border border-dashed border-stone-300 bg-white px-5 py-10 text-center">
+    <div className="flex flex-col items-center rounded-xl border border-dashed border-stone-300 bg-white px-5 py-10 text-center">
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-green-800">
         <AppIcon name={icon} className="h-6 w-6" />
       </span>
-      {title && <p className="mt-3 text-lg font-semibold text-green-950">{title}</p>}
+      {title && <p className="mt-3 text-lg font-semibold text-charcoal">{title}</p>}
       <div className="mt-1 max-w-md text-[15px] text-stone-600">{children}</div>
     </div>
   )
@@ -106,8 +106,8 @@ export function EmptyState({ icon = 'sprout', title, children }) {
 // Pass a palette's `badge` classes as className, and an icon name from the icon set.
 export function Badge({ className = FLAG.neutral.badge, icon, children }) {
   return (
-    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full border py-0.5 pr-2.5 text-xs font-semibold ${icon ? 'pl-2' : 'pl-2.5'} ${className}`}>
-      {icon && <AppIcon name={icon} className="h-3.5 w-3.5" />}
+    <span className={`badge ${className}`}>
+      {icon && <AppIcon name={icon} />}
       {children}
     </span>
   )
@@ -128,7 +128,7 @@ export function InactiveBadge() {
 
 export function Checkbox({ id, label, checked, onChange }) {
   return (
-    <label htmlFor={id} className="-mx-3 flex min-h-[44px] cursor-pointer items-center gap-3 rounded-xl px-3 text-[15px] text-stone-800 hover:bg-stone-50">
+    <label htmlFor={id} className="-mx-3 flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg px-3 text-[15px] text-stone-800 hover:bg-cream">
       <input
         id={id}
         type="checkbox"
@@ -160,25 +160,25 @@ export function Modal({ title, onClose, children, footer, narrow = false, role =
         role={role}
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`max-h-[90vh] w-full overflow-y-auto rounded-t-3xl bg-white shadow-2xl shadow-green-950/20 sm:rounded-2xl ${narrow ? 'sm:max-w-md' : 'sm:max-w-lg'}`}
+        className={`max-h-[90vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-2xl shadow-green-950/20 sm:rounded-xl ${narrow ? 'sm:max-w-md' : 'sm:max-w-lg'}`}
       >
         <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-stone-300 sm:hidden" aria-hidden="true" />
-        <div className="flex items-center justify-between gap-4 border-b border-stone-200 px-5 py-3 sm:px-6 sm:py-4">
-          <h2 id={titleId} className="text-lg font-semibold text-green-950">
+        <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-3 sm:px-6 sm:py-4">
+          <h2 id={titleId} className="text-lg font-semibold text-charcoal">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="-mr-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-stone-700 hover:bg-stone-100"
+            className="-mr-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-stone-700 hover:bg-stone-100"
           >
             <AppIcon name="x" className="h-5 w-5" />
           </button>
         </div>
         <div className="px-5 py-5 sm:px-6">{children}</div>
         {footer && (
-          <div className="flex flex-col-reverse gap-2 border-t border-stone-200 bg-stone-50 px-5 pb-6 pt-3 sm:flex-row sm:justify-end sm:rounded-b-2xl sm:px-6 sm:py-4">
+          <div className="flex flex-col-reverse gap-2 border-t border-line bg-cream px-5 pb-6 pt-3 sm:flex-row sm:justify-end sm:rounded-b-xl sm:px-6 sm:py-4">
             {footer}
           </div>
         )}
@@ -190,7 +190,7 @@ export function Modal({ title, onClose, children, footer, narrow = false, role =
 // The row of buttons at the bottom of a form inside a Modal.
 export function FormActions({ onCancel, saving, saveLabel, savingLabel = 'Saving…' }) {
   return (
-    <div className="-mx-5 -mb-5 mt-6 flex flex-col-reverse gap-2 border-t border-stone-200 bg-stone-50 px-5 pb-6 pt-3 sm:-mx-6 sm:flex-row sm:justify-end sm:rounded-b-2xl sm:px-6 sm:py-4">
+    <div className="-mx-5 -mb-5 mt-6 flex flex-col-reverse gap-2 border-t border-line bg-cream px-5 pb-6 pt-3 sm:-mx-6 sm:flex-row sm:justify-end sm:rounded-b-xl sm:px-6 sm:py-4">
       <button type="button" className={`w-full sm:w-auto ${btnSecondary}`} onClick={onCancel}>
         Cancel
       </button>

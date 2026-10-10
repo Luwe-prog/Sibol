@@ -1,8 +1,8 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/useAuth.js'
 
 function FullPageMessage({ children }) {
-  return <div className="flex min-h-screen items-center justify-center bg-stone-50 text-stone-500">{children}</div>
+  return <div className="flex min-h-screen items-center justify-center bg-cream text-stone-500">{children}</div>
 }
 
 // Login page only: a signed-in user is sent into the app.
@@ -15,11 +15,14 @@ export function GuestOnly() {
 }
 
 // Any signed-in user, including one still on a temporary password.
-export function RequireAuth() {
+// A visitor who is not logged in sees `landing` (the public landing page) at "/",
+// and is sent to the login page from anywhere else.
+export function RequireAuth({ landing = null }) {
   const { user, loading } = useAuth()
+  const { pathname } = useLocation()
 
   if (loading) return <FullPageMessage>Loading…</FullPageMessage>
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) return landing && pathname === '/' ? landing : <Navigate to="/login" replace />
   return <Outlet />
 }
 

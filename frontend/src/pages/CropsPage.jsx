@@ -1,10 +1,25 @@
 import { useState } from 'react'
 import api, { readError } from '../api/client.js'
 import FormField from '../components/FormField.jsx'
-import { Checkbox, ErrorAlert, InactiveBadge, FormActions, Loading, Modal, PageHeader } from '../components/ui.jsx'
+import { AppIcon } from '../components/icons.jsx'
+import { Checkbox, ErrorAlert, FormActions, InactiveBadge, Loading, Modal, PageHeader } from '../components/ui.jsx'
 import useFetch from '../hooks/useFetch.js'
 import { formatNumber } from '../lib/format.js'
-import { btnPrimary, btnSmall } from '../lib/styles.js'
+
+// A range as numbers with a small bar showing where it sits on the scale (0 to `scale`).
+function Range({ min, max, unit, scale }) {
+  return (
+    <div className="range-cell">
+      <span>
+        {formatNumber(min)}–{formatNumber(max)}
+        {unit}
+      </span>
+      <div className="range-track" aria-hidden="true">
+        <span style={{ marginLeft: `${(min / scale) * 100}%`, width: `${((max - min) / scale) * 100}%` }} />
+      </div>
+    </div>
+  )
+}
 
 export default function CropsPage() {
   const { data, error, loading, reload } = useFetch('/super-admin/crops')
@@ -14,57 +29,69 @@ export default function CropsPage() {
   const crops = data?.crops ?? []
 
   return (
-    <div>
+    <>
       <PageHeader title="Crop library" subtitle="Ideal ranges per crop. Readings are judged against these.">
-        <button type="button" className={btnPrimary} onClick={() => setEditing({})}>
+        <button type="button" className="btn btn-primary" onClick={() => setEditing({})}>
+          <AppIcon name="plus" />
           New crop
         </button>
       </PageHeader>
 
-      <ErrorAlert>{error}</ErrorAlert>
+      <ErrorAlert onRetry={reload}>{error}</ErrorAlert>
       {loading && <Loading />}
 
       {!loading && !error && (
-        <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-stone-200 bg-stone-50 text-stone-600">
-              <tr>
-                <th className="whitespace-nowrap px-3 py-2 font-medium">Crop</th>
-                <th className="whitespace-nowrap px-3 py-2 font-medium">Soil moisture</th>
-                <th className="whitespace-nowrap px-3 py-2 font-medium">Temperature</th>
-                <th className="whitespace-nowrap px-3 py-2 font-medium">Humidity</th>
-                <th className="whitespace-nowrap px-3 py-2 font-medium">Source</th>
-                <th className="whitespace-nowrap px-3 py-2 font-medium">Zones</th>
-                <th className="px-3 py-2" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {crops.map((crop) => (
-                <tr key={crop.id}>
-                  <td className="whitespace-nowrap px-3 py-2 font-medium text-stone-900">
-                    {crop.name} {!crop.is_active && <InactiveBadge />}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-2">
-                    {formatNumber(crop.soil_moisture_min)}–{formatNumber(crop.soil_moisture_max)}%
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-2">
-                    {formatNumber(crop.temp_min)}–{formatNumber(crop.temp_max)} °C
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-2">
-                    {formatNumber(crop.humidity_min)}–{formatNumber(crop.humidity_max)}%
-                  </td>
-                  <td className="px-3 py-2 text-stone-600">{crop.source_reference}</td>
-                  <td className="whitespace-nowrap px-3 py-2">{crop.zones_count}</td>
-                  <td className="whitespace-nowrap px-3 py-2 text-right">
-                    <button type="button" className={btnSmall} onClick={() => setEditing(crop)}>
-                      Edit
-                    </button>
-                  </td>
+        <section className="card table-card">
+          <div className="table-scroll">
+            <table className="data-table crop-table">
+              <thead>
+                <tr>
+                  <th scope="col">Crop</th>
+                  <th scope="col">Soil moisture</th>
+                  <th scope="col">Temperature</th>
+                  <th scope="col">Humidity</th>
+                  <th scope="col">Source</th>
+                  <th scope="col">Zones</th>
+                  <th scope="col">Edit</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {crops.map((crop) => (
+                  <tr key={crop.id}>
+                    <td>
+                      <span className="crop-name">
+                        <span className="soft-icon">
+                          <AppIcon name="sprout" />
+                        </span>
+                        <strong>{crop.name}</strong>
+                        {!crop.is_active && <InactiveBadge />}
+                      </span>
+                    </td>
+                    <td data-label="Soil moisture">
+                      <Range min={crop.soil_moisture_min} max={crop.soil_moisture_max} unit="%" scale={100} />
+                    </td>
+                    <td data-label="Temperature">
+                      <Range min={crop.temp_min} max={crop.temp_max} unit=" °C" scale={60} />
+                    </td>
+                    <td data-label="Humidity">
+                      <Range min={crop.humidity_min} max={crop.humidity_max} unit="%" scale={100} />
+                    </td>
+                    <td data-label="Source">
+                      <span className="source-label">{crop.source_reference || 'No source given'}</span>
+                    </td>
+                    <td data-label="Zones">{crop.zones_count}</td>
+                    <td>
+                      <button type="button" className="btn btn-text" onClick={() => setEditing(crop)} aria-label={`Edit ${crop.name}`}>
+                        <AppIcon name="pencil" />
+                        <span className="mobile-only">Edit crop</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       )}
 
       {editing && (
@@ -77,7 +104,7 @@ export default function CropsPage() {
           }}
         />
       )}
-    </div>
+    </>
   )
 }
 

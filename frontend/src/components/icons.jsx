@@ -51,6 +51,9 @@ const PATHS = {
   rooftop: 'M5 21V10h14v11M3 21h18M9 14h2M13 14h2M9 17.5h2M13 17.5h2M12 10V7M12 8c0-1.9 1.3-3.5 3.5-3.5 0 2-1.4 3.5-3.5 3.5Z',
   indoor: 'M3 11l9-7 9 7M5 9.5V20h14V9.5M10 20v-5h4v5',
   droplet: 'M12 3S5.5 10 5.5 14.5a6.5 6.5 0 0 0 13 0C18.5 10 12 3 12 3Z',
+  leaf: 'M20 4C10 2 3 7 5 14s13 6 15-10ZM4 21 15 10',
+  'arrow-right': 'M5 12h14m-6-6 6 6-6 6',
+  'arrow-left': 'M19 12H5m6-6-6 6 6 6',
   thermometer: THERMOMETER,
   wind: WIND,
   bulb: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.2 1.1 2V16h5v-.2c0-.8.4-1.5 1.1-2A6 6 0 0 0 12 3Z',
@@ -75,18 +78,21 @@ const PATHS = {
 }
 
 // <AppIcon name="droplet" className="h-5 w-5" />. Decorative by default: the words beside it carry the meaning.
-export function AppIcon({ name, className = 'h-5 w-5', ...props }) {
+export function AppIcon({ name, className = '', ...props }) {
+  // 20 px unless the caller sets a height, so passing only a color never makes the icon fill its box.
+  const sized = /(^|\s)h-/.test(className) ? className : `h-5 w-5 ${className}`
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.75"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className={`shrink-0 ${className}`}
+      // "icon" lets the design's styles (components/app.css) size it inside buttons, badges and so on.
+      className={`icon shrink-0 ${sized}`}
       {...props}
     >
       <path d={PATHS[name]} />

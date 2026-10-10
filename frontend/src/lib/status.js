@@ -6,7 +6,7 @@ const AMBER = {
   card: 'border-amber-300',
   head: 'border-amber-300 bg-amber-50 text-amber-800',
   tile: 'border-amber-300 bg-amber-50',
-  badge: 'border-amber-300 bg-amber-50 text-amber-800',
+  badge: 'badge-dry',
   text: 'text-amber-800',
   num: 'text-amber-900',
   soft: 'bg-amber-50 text-amber-900',
@@ -15,7 +15,7 @@ const GREEN = {
   card: 'border-green-300',
   head: 'border-green-300 bg-green-50 text-green-800',
   tile: 'border-green-300 bg-green-50',
-  badge: 'border-green-300 bg-green-50 text-green-800',
+  badge: 'badge-optimal',
   text: 'text-green-800',
   num: 'text-green-900',
   soft: 'bg-green-50 text-green-900',
@@ -24,18 +24,18 @@ const BLUE = {
   card: 'border-blue-300',
   head: 'border-blue-300 bg-blue-50 text-blue-800',
   tile: 'border-blue-300 bg-blue-50',
-  badge: 'border-blue-300 bg-blue-50 text-blue-800',
+  badge: 'badge-wet',
   text: 'text-blue-800',
   num: 'text-blue-900',
   soft: 'bg-blue-50 text-blue-900',
 }
-const RED = { badge: 'border-red-300 bg-red-50 text-red-800', text: 'text-red-800' }
-const ORANGE = { badge: 'border-orange-300 bg-orange-50 text-orange-800', text: 'text-orange-800' }
+const RED = { badge: 'badge-hot', text: 'text-red-800' }
+const ORANGE = { badge: 'badge-warning', text: 'text-orange-800' }
 const GRAY = {
   card: 'border-stone-300',
   head: 'border-stone-300 bg-stone-100 text-stone-700',
   tile: 'border-stone-300 bg-stone-100',
-  badge: 'border-stone-300 bg-stone-100 text-stone-700',
+  badge: 'badge-none',
   text: 'text-stone-700',
   num: 'text-stone-800',
   soft: 'bg-stone-100 text-stone-800',
@@ -70,7 +70,7 @@ export const FLAG = {
   inactive: { label: 'Inactive', icon: 'ban', badge: GRAY.badge },
   imported: { label: 'Imported', icon: 'download', badge: GRAY.badge },
   neutral: { badge: GRAY.badge },
-  superAdmin: { label: 'Super Admin', icon: 'shield', badge: 'border-green-900 bg-green-900 text-white' },
+  superAdmin: { label: 'Super Admin', icon: 'shield', badge: 'badge-role' },
   admin: { label: 'Admin', icon: 'user', badge: GREEN.badge },
 }
 

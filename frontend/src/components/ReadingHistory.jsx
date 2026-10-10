@@ -11,7 +11,7 @@ import { EmptyState, ErrorAlert, Loading, Pagination, StatusBadge } from './ui.j
 const EMPTY_FILTERS = { from: '', to: '', status: '', zone_id: '' }
 
 const th = 'px-3 py-3 text-xs font-semibold uppercase tracking-wide text-stone-600 first:pl-4'
-const td = 'border-t border-stone-200 px-3 py-2.5 align-top text-stone-900 first:pl-4'
+const td = 'border-t border-line px-3 py-2.5 align-top text-stone-900 first:pl-4'
 
 // A value with its status word and icon under it. Shown only when the value is out of range,
 // except for soil moisture, which always shows its status.
@@ -81,8 +81,8 @@ export default function ReadingHistory({ url, zones }) {
       <div
         className={
           showZone
-            ? 'mb-4 grid grid-cols-2 items-end gap-3 rounded-2xl border border-stone-200 bg-white p-4 md:grid-cols-[1.2fr_1fr_1fr_1.2fr_auto]'
-            : 'mb-4 grid grid-cols-2 items-end gap-3 rounded-2xl border border-stone-200 bg-white p-4 md:grid-cols-[1fr_1fr_1.2fr_auto]'
+            ? 'mb-4 grid grid-cols-2 items-end gap-3 rounded-xl border border-line bg-white p-4 md:grid-cols-[1.2fr_1fr_1fr_1.2fr_auto]'
+            : 'mb-4 grid grid-cols-2 items-end gap-3 rounded-xl border border-line bg-white p-4 md:grid-cols-[1fr_1fr_1.2fr_auto]'
         }
       >
         {showZone && (
@@ -146,10 +146,10 @@ export default function ReadingHistory({ url, zones }) {
       {readings.length > 0 && (
         <>
           {/* Laptop: table. */}
-          <div className="hidden overflow-hidden rounded-2xl border border-stone-200 bg-white md:block">
+          <div className="hidden overflow-hidden rounded-xl border border-line bg-white md:block">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="bg-stone-50">
+                <thead className="bg-cream">
                   <tr>
                     <th scope="col" className={th}>Recorded</th>
                     {showZone && <th scope="col" className={th}>Zone</th>}
@@ -166,7 +166,7 @@ export default function ReadingHistory({ url, zones }) {
                 </thead>
                 <tbody>
                   {readings.map((reading) => (
-                    <tr key={reading.id} className="hover:bg-stone-50">
+                    <tr key={reading.id} className="hover:bg-cream">
                       <td className={`${td} whitespace-nowrap`}>
                         {formatDateTime(reading.recorded_at)}
                         <Flags reading={reading} />
@@ -205,7 +205,7 @@ export default function ReadingHistory({ url, zones }) {
           </div>
 
           {/* Phone: the same rows as stacked cards. */}
-          <ul className="divide-y divide-stone-200 overflow-hidden rounded-2xl border border-stone-200 bg-white md:hidden">
+          <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white md:hidden">
             {readings.map((reading) => (
               <li key={reading.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">

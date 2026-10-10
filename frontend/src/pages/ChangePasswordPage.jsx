@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { readError } from '../api/client.js'
 import FormField from '../components/FormField.jsx'
+import '../components/app.css'
 import { useAuth } from '../context/useAuth.js'
 
 export default function ChangePasswordPage() {
@@ -34,7 +35,7 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-stone-50 px-4 py-10">
+    <div className="sibol-app flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-semibold text-stone-900">
@@ -47,7 +48,7 @@ export default function ChangePasswordPage() {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-line bg-white p-6 shadow-sm">
           {error && (
             <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}

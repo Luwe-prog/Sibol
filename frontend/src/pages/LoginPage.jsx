@@ -1,61 +1,22 @@
+import '@fontsource-variable/dm-sans'
 import { useEffect, useRef, useState } from 'react'
-import {
-  AlertCircle,
-  ArrowRight,
-  Clock,
-  Droplet,
-  Eye,
-  EyeOff,
-  Info,
-  Leaf,
-  Lock,
-  Mail,
-  SibolMark,
-  Spinner,
-  Thermometer,
-  UserX,
-  WifiOff,
-} from '../components/icons.jsx'
+import { SibolMark } from '../components/icons.jsx'
 import { useAuth } from '../context/useAuth.js'
+import './login.css'
 
-// The photo on the left side, served from frontend/public/login-hero.jpg.
-// If the file is missing, the panel shows a plain green background instead.
-// The full-size original is kept in frontend/design/.
-const HERO_IMAGE = '/login-hero.jpg'
+// Layout and wording come from the Figma Make design (kept in frontend/design/figma-login);
+// its styles are in login.css, all under the .login-page class.
+// The login behavior is the app's own: real requests, real errors, a real countdown.
 
 const YEAR = new Date().getFullYear()
 
-const field =
-  'block h-14 w-full rounded-xl border bg-white pl-12 text-base text-stone-900 placeholder-stone-400 ' +
-  'focus:border-green-700 focus:outline-none focus:ring-2 focus:ring-green-700'
-
 // What to show for each way a login can fail.
 const ERRORS = {
-  wrong: {
-    Icon: AlertCircle,
-    title: 'The email or password is incorrect.',
-    detail: 'Check for typing mistakes and try again.',
-  },
-  deactivated: {
-    Icon: UserX,
-    title: 'This account has been deactivated.',
-    detail: 'Ask your Super Admin to turn it back on.',
-  },
-  throttled: {
-    Icon: Clock,
-    title: 'Too many tries.',
-    detail: 'Please wait 1 minute, then try again.',
-  },
-  unreachable: {
-    Icon: WifiOff,
-    title: 'Cannot reach the server.',
-    detail: 'Check that the backend is running.',
-  },
-  other: {
-    Icon: AlertCircle,
-    title: 'Something went wrong.',
-    detail: 'Please try again.',
-  },
+  wrong: { title: 'The email or password is incorrect.', detail: 'Check for typing mistakes and try again.' },
+  deactivated: { title: 'This account has been deactivated.', detail: 'Ask your Super Admin to turn it back on.' },
+  throttled: { title: 'Too many tries.', detail: 'Please wait 1 minute, then try again.' },
+  unreachable: { title: 'Cannot reach the server.', detail: 'Check that the backend is running.' },
+  other: { title: 'Something went wrong.', detail: 'Please try again.' },
 }
 
 const errorKind = (error) => {
@@ -69,6 +30,81 @@ const errorKind = (error) => {
 // 45 -> "0:45"
 const mmss = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
 
+const ICON_PATHS = {
+  leaf: (
+    <>
+      <path d="M19 4C9 3 3 9 6 15s13 3 13-11Z" />
+      <path d="M5 20 15 9M9 16v-5m0 5h5" />
+    </>
+  ),
+  sprout: <path d="M12 21v-9M12 15C4 15 3 9 3 6c6 0 9 3 9 9ZM12 12c0-7 5-9 9-9 0 6-3 9-9 9ZM6 21h12" />,
+  mail: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="3" />
+      <path d="m3 7 9 6 9-6" />
+    </>
+  ),
+  lock: (
+    <>
+      <rect x="5" y="10" width="14" height="11" rx="3" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  hide: <path d="m3 3 18 18M10 5c7-1 12 7 12 7a21 21 0 0 1-4 5M6 6a22 22 0 0 0-4 6s4 7 10 7a12 12 0 0 0 4-1" />,
+  arrow: <path d="M4 12h16m-6-6 6 6-6 6" />,
+  info: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v6M12 7h.01" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </>
+  ),
+  drop: <path d="M12 3C9 8 5 11 5 15a7 7 0 0 0 14 0c0-4-4-7-7-12ZM8 15a4 4 0 0 0 4 4" />,
+  status: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8 12 3 3 5-6" />
+    </>
+  ),
+  readings: <path d="M8 3v11a4 4 0 1 0 5 0V3a2.5 2.5 0 0 0-5 0ZM17 5h4m-4 5h3M10.5 9v8" />,
+}
+
+function Icon({ name, className = '' }) {
+  return (
+    <svg
+      className={`icon ${className}`}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {ICON_PATHS[name]}
+    </svg>
+  )
+}
+
+const FEATURES = [
+  ['readings', '3 readings', 'Soil, temperature, humidity'],
+  ['status', 'Clear status', 'Too Dry, Optimal or Too Wet'],
+  ['drop', 'Liters to apply', 'The right amount for each bed'],
+]
+
 export default function LoginPage() {
   const { login } = useAuth()
   const passwordRef = useRef(null)
@@ -79,10 +115,10 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
   // Seconds left before another try is allowed, after too many failed ones.
   const [waitSeconds, setWaitSeconds] = useState(0)
-  const [heroMissing, setHeroMissing] = useState(false)
 
   const error = errorKey ? ERRORS[errorKey] : null
   const invalid = errorKey === 'wrong'
+  const waiting = waitSeconds > 0
 
   useEffect(() => {
     document.title = 'Log in · Sibol'
@@ -107,6 +143,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    if (submitting || waiting) return
     setErrorKey(null)
     setSubmitting(true)
 
@@ -134,140 +171,79 @@ export default function LoginPage() {
     }
   }
 
-  const fieldBorder = invalid ? 'border-red-700' : 'border-stone-300'
-
-  const buttonTone =
-    waitSeconds > 0
-      ? 'cursor-not-allowed bg-stone-200 text-stone-700'
-      : submitting
-        ? 'cursor-progress bg-green-900 text-white'
-        : 'bg-green-800 text-white shadow-sm hover:bg-green-900'
+  const wrapClass = invalid ? 'input-wrap invalid' : 'input-wrap'
+  const buttonClass = waiting ? 'submit-button rate-limited' : submitting ? 'submit-button is-busy' : 'submit-button'
 
   return (
-    <div className="min-h-screen bg-[#f7f6f1] text-stone-900 lg:grid lg:grid-cols-2">
-      {/* Left: photo panel. Shown on laptops and wider. */}
-      <aside
-        aria-label="About Sibol"
-        className="relative hidden overflow-hidden bg-gradient-to-br from-green-100 via-green-200 to-green-400 lg:flex lg:flex-col lg:justify-between lg:p-14 xl:p-[72px]"
-      >
-        {!heroMissing && (
-          <img
-            src={HERO_IMAGE}
-            alt=""
-            onError={() => setHeroMissing(true)}
-            // The photo is wider than the panel. This keeps the planter bed on the right in view.
-            className="absolute inset-0 h-full w-full object-cover object-[76%_50%]"
-          />
-        )}
-        {/* Soft washes so the dark heading at the top and the white line at the bottom stay readable. */}
-        <div className="absolute inset-x-0 top-0 h-2/3 bg-gradient-to-b from-white/85 via-white/55 to-transparent" aria-hidden="true" />
-        <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-green-950/60 to-transparent" aria-hidden="true" />
-
-        <div className="relative">
-          <div className="flex items-center gap-4">
-            <SibolMark className="h-12 w-12" />
-            <span className="text-4xl font-bold tracking-tight text-green-900">Sibol</span>
-            <span className="h-9 w-px bg-stone-400/70" aria-hidden="true" />
-            <span className="text-sm text-stone-600">Watering guide for rooftop and indoor farms</span>
-          </div>
-
-          <p className="mt-16 max-w-xl text-5xl font-bold leading-tight tracking-tight text-green-950">
-            Welcome back to Sibol.
+    <main className="login-page">
+      <section className="photo-panel" aria-label="Welcome to Sibol">
+        <div className="photo-image" />
+        <div className="photo-shade" />
+        <div className="mobile-brand">
+          <SibolMark aria-hidden="true" className="logo-tile" />
+          <span>Sibol</span>
+        </div>
+        <div className="photo-content">
+          <span className="leaf-badge">
+            <Icon name="leaf" />
+          </span>
+          <p className="photo-eyebrow">A LITTLE CARE. A LITTLE GROWTH.</p>
+          <p className="photo-heading">
+            Welcome back <br />
+            to Sibol.
           </p>
-          <p className="mt-5 max-w-md text-xl leading-8 text-stone-600">
+          <span className="photo-rule" />
+          <p className="photo-description">
             Enter your readings, see how each bed is doing, and give your plants the right amount of water.
           </p>
-
-          {/* A sample of what the app shows for one bed. */}
-          <div className="mt-12 w-full max-w-[420px] rounded-2xl border border-white/60 bg-white/85 p-6 shadow-xl shadow-green-950/10 backdrop-blur-md">
-            <div className="flex items-center gap-2.5 border-b border-stone-200 pb-4">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-stone-100 text-stone-900">
-                <Leaf aria-hidden="true" className="h-3.5 w-3.5" />
-              </span>
-              <span className="text-base font-medium text-stone-900">Bed 02</span>
-              <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800">Optimal</span>
+        </div>
+        <div className="feature-strip">
+          {FEATURES.map(([icon, title, description]) => (
+            <div className="feature" key={title}>
+              <Icon name={icon} />
+              <strong>{title}</strong>
+              <span>{description}</span>
             </div>
-            <dl className="mt-4 grid grid-cols-3 divide-x divide-stone-200">
-              <div className="pr-4">
-                <Droplet aria-hidden="true" className="h-6 w-6 rounded-full bg-stone-100 p-1 text-stone-900" />
-                <dt className="mt-2 text-xs text-stone-500">Soil Moisture</dt>
-                <dd className="mt-0.5 text-lg font-semibold text-stone-900">78%</dd>
-                <div className="mt-2 h-1.5 rounded-full bg-stone-200" aria-hidden="true">
-                  <div className="h-1.5 w-[78%] rounded-full bg-green-700" />
-                </div>
-              </div>
-              <div className="px-4">
-                <Thermometer aria-hidden="true" className="h-6 w-6 rounded-full bg-stone-100 p-1 text-stone-900" />
-                <dt className="mt-2 text-xs text-stone-500">Temperature</dt>
-                <dd className="mt-0.5 text-lg font-semibold text-stone-900">29°C</dd>
-              </div>
-              <div className="pl-4">
-                <Droplet aria-hidden="true" className="h-6 w-6 rounded-full bg-stone-100 p-1 text-stone-900" />
-                <dt className="mt-2 text-xs text-stone-500">Humidity</dt>
-                <dd className="mt-0.5 text-lg font-semibold text-stone-900">64%</dd>
-              </div>
-            </dl>
-          </div>
+          ))}
         </div>
-
-        <div className="relative flex items-center gap-3 text-white">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/25">
-            <Leaf aria-hidden="true" className="h-3.5 w-3.5" />
-          </span>
-          <span className="h-5 w-px bg-white/60" aria-hidden="true" />
-          <span className="text-sm font-medium">The right amount of water for healthier plants.</span>
+        <div className="photo-caption">
+          <span className="caption-line" /> Rooted in care. Growing together.
         </div>
-      </aside>
+        <Icon name="leaf" className="leaf-decoration" />
+      </section>
 
-      {/* Right: the form. */}
-      <main className="relative flex min-h-screen flex-col overflow-hidden px-5 pb-6 pt-6 sm:px-10 lg:px-16 lg:pt-10">
-        {/* Faint leaves in the bottom corner. */}
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 400 400"
-          className="pointer-events-none absolute -bottom-10 -right-10 h-72 w-72 text-green-700/10 lg:h-[420px] lg:w-[420px]"
-        >
-          <path fill="currentColor" d="M20 400C20 250 110 150 270 140C270 290 180 390 20 400Z" />
-          <path fill="currentColor" d="M300 300C290 180 330 90 400 40V300Z" />
-        </svg>
+      <section className="form-panel" aria-label="Log in to Sibol">
+        <div className="form-content">
+          <header className="brand">
+            <SibolMark aria-hidden="true" className="logo-tile" />
+            <span className="wordmark">Sibol</span>
+            <p className="brand-description">Watering guide for rooftop and indoor farms</p>
+            <span className="brand-rule" />
+          </header>
 
-        <div className="relative flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 lg:invisible">
-            <SibolMark className="h-11 w-11" />
-            <div>
-              <p className="text-2xl font-bold leading-7 tracking-tight text-green-900">Sibol</p>
-              <p className="mt-0.5 text-sm text-stone-600">Watering guide for rooftop &amp; indoor farms</p>
+          <form className="login-form" onSubmit={handleSubmit} aria-busy={submitting}>
+            <div className="form-heading">
+              <h1>Welcome back</h1>
+              <p>Log in to check your beds.</p>
             </div>
-          </div>
-          <p className="hidden text-right text-sm text-stone-600 sm:block">
-            Don’t have an account? <span className="font-semibold text-green-800">Ask your Super Admin</span>
-          </p>
-        </div>
 
-        <div className="relative mx-auto flex w-full max-w-[540px] flex-1 flex-col justify-center py-10">
-          <h1 className="text-4xl font-bold tracking-tight text-green-950 sm:text-5xl">Sign in</h1>
-          <p className="mt-3 text-lg text-stone-600">Access your Sibol dashboard.</p>
-
-          {/* Always in the page, so a screen reader announces the banner when it appears. */}
-          <div id="login-alert" role="alert" aria-atomic="true">
-            {error && (
-              <div className="mt-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                <error.Icon aria-hidden="true" className="h-5 w-5 shrink-0" />
-                <div>
-                  <p className="font-semibold">{error.title}</p>
-                  <p className="mt-0.5">{error.detail}</p>
+            {/* Always in the page, so a screen reader announces the banner when it appears. */}
+            <div id="login-alert" role="alert" aria-atomic="true">
+              {error && (
+                <div className="error-banner">
+                  <Icon name={errorKey === 'throttled' ? 'clock' : 'info'} />
+                  <div>
+                    <p className="error-title">{error.title}</p>
+                    <p>{error.detail}</p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <form onSubmit={handleSubmit} aria-busy={submitting} className="mt-8 flex flex-col gap-6">
-            <div>
-              <label htmlFor="email" className="mb-2 block text-base font-medium text-stone-800">
-                Email address
-              </label>
-              <div className="relative">
-                <Mail aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-stone-500" />
+            <div className="field-group">
+              <label htmlFor="email">Email address</label>
+              <div className={wrapClass}>
+                <Icon name="mail" />
                 <input
                   id="email"
                   name="email"
@@ -277,88 +253,100 @@ export default function LoginPage() {
                   inputMode="email"
                   autoCapitalize="none"
                   spellCheck={false}
-                  placeholder="you@example.com"
+                  placeholder="Enter your email address"
                   readOnly={submitting}
                   aria-invalid={invalid}
                   aria-describedby={error ? 'login-alert' : undefined}
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className={`${field} ${fieldBorder} pr-4`}
                 />
               </div>
             </div>
 
-            <div>
-              <label htmlFor="password" className="mb-2 block text-base font-medium text-stone-800">
-                Password
-              </label>
-              <div className="relative">
-                <Lock aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-stone-500" />
+            <div className="field-group">
+              <label htmlFor="password">Password</label>
+              <div className={wrapClass}>
+                <Icon name="lock" />
                 <input
                   id="password"
                   name="password"
                   type={show ? 'text' : 'password'}
                   required
                   autoComplete="current-password"
+                  placeholder="Enter your password"
                   ref={passwordRef}
                   readOnly={submitting}
                   aria-invalid={invalid}
                   aria-describedby={error ? 'login-alert' : undefined}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className={`${field} ${fieldBorder} pr-24`}
                 />
                 <button
+                  className="password-toggle"
                   type="button"
                   onClick={() => setShow(!show)}
                   aria-controls="password"
                   aria-label={show ? 'Hide password' : 'Show password'}
-                  className="absolute inset-y-px right-px flex min-w-[44px] items-center gap-1.5 rounded-r-[11px] px-4 text-sm font-semibold text-green-800 hover:bg-green-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-green-700"
+                  aria-pressed={show}
                 >
-                  {show ? <EyeOff aria-hidden="true" className="h-5 w-5" /> : <Eye aria-hidden="true" className="h-5 w-5" />}
-                  {show ? 'Hide' : 'Show'}
+                  <Icon name={show ? 'hide' : 'eye'} />
                 </button>
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={submitting || waitSeconds > 0}
-              className={`mt-2 flex h-14 w-full items-center justify-center gap-2.5 rounded-xl px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2 ${buttonTone}`}
-            >
+            <button className={buttonClass} type="submit" disabled={submitting || waiting}>
               {submitting ? (
                 <>
-                  <Spinner aria-hidden="true" className="h-5 w-5 animate-spin" />
-                  Logging in…
+                  <span>Logging in…</span>
+                  <span className="spinner" aria-hidden="true" />
                 </>
-              ) : waitSeconds > 0 ? (
+              ) : waiting ? (
                 <>
-                  <Clock aria-hidden="true" className="h-5 w-5" />
-                  Try again in {mmss(waitSeconds)}
+                  <Icon name="clock" />
+                  <span>Try again in {mmss(waitSeconds)}</span>
                 </>
               ) : (
                 <>
-                  Log in
-                  <ArrowRight aria-hidden="true" className="h-5 w-5" />
+                  <span>Log in</span>
+                  <Icon name="arrow" />
                 </>
               )}
             </button>
             <span className="sr-only" aria-live="polite">
               {submitting ? 'Logging in…' : ''}
             </span>
+
+            <p className="account-note">
+              <Icon name="info" />
+              <span>
+                Need an account or a password reset? <br />
+                Ask your Super Admin.
+              </span>
+            </p>
           </form>
 
-          <div className="mt-6 flex items-start gap-2.5 text-sm leading-5 text-stone-600">
-            <Info aria-hidden="true" className="h-5 w-5 shrink-0" />
-            <p>
-              No account, or forgot your password?{' '}
-              <span className="font-semibold text-green-800">Ask your Super Admin.</span>
-            </p>
+          {/* Plain links, so the page also works where no router is present (the tests). */}
+          <div className="learn-card">
+            <span className="learn-icon">
+              <Icon name="sprout" />
+            </span>
+            <div>
+              <p>New to Sibol?</p>
+              <a href="/">
+                See how it works <Icon name="arrow" />
+              </a>
+            </div>
+            <Icon name="leaf" className="card-leaf" />
           </div>
-        </div>
 
-        <p className="relative text-right text-xs text-stone-500">© {YEAR} Sibol</p>
-      </main>
-    </div>
+          <footer className="footer">
+            <a href="/">
+              See how Sibol works <Icon name="arrow" />
+            </a>
+            <span>© {YEAR} Sibol</span>
+          </footer>
+        </div>
+      </section>
+    </main>
   )
 }

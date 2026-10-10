@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import api, { readError } from '../api/client.js'
 import FormField from '../components/FormField.jsx'
-import { Badge, Checkbox, ConfirmDialog, EmptyState, ErrorAlert, InactiveBadge, FormActions, Loading, Modal, PageHeader } from '../components/ui.jsx'
+import { AppIcon } from '../components/icons.jsx'
+import { Badge, Checkbox, ConfirmDialog, EmptyState, ErrorAlert, FormActions, Loading, Modal, PageHeader, StatusBadge } from '../components/ui.jsx'
 import { useAuth } from '../context/useAuth.js'
 import useFetch from '../hooks/useFetch.js'
+import { initials } from '../lib/format.js'
 import { FLAG } from '../lib/status.js'
-import { btnPrimary, btnSmall } from '../lib/styles.js'
 
 // Every account: Admins and Super Admins.
 export default function AdminAccountsPage() {
@@ -18,13 +19,6 @@ export default function AdminAccountsPage() {
   const [actionError, setActionError] = useState('')
   // { kind: 'reset' | 'deactivate', account } while a confirmation window is open
   const [confirming, setConfirming] = useState(null)
-
-  const confirmAction = () => {
-    const { kind, account } = confirming
-    setConfirming(null)
-    if (kind === 'reset') resetPassword(account)
-    else setActive(account, false)
-  }
 
   const accounts = data?.admins ?? []
 
@@ -49,69 +43,87 @@ export default function AdminAccountsPage() {
     }
   }
 
+  const confirmAction = () => {
+    const { kind, account } = confirming
+    setConfirming(null)
+    if (kind === 'reset') resetPassword(account)
+    else setActive(account, false)
+  }
+
   return (
-    <div>
+    <>
       <PageHeader
         title="Accounts"
         subtitle="Admins work on the farms you assign them. Super Admins manage everything, including these accounts."
       >
-        <button type="button" className={btnPrimary} onClick={() => setEditing({})}>
+        <button type="button" className="btn btn-primary" onClick={() => setEditing({})}>
+          <AppIcon name="plus" />
           New account
         </button>
       </PageHeader>
 
-      <ErrorAlert>{error || actionError}</ErrorAlert>
+      <ErrorAlert onRetry={error ? reload : undefined}>{error || actionError}</ErrorAlert>
       {loading && <Loading />}
 
-      {!loading && !error && accounts.length === 0 && <EmptyState>No accounts yet.</EmptyState>}
+      {!loading && !error && accounts.length === 0 && (
+        <EmptyState icon="users" title="No accounts yet">
+          Add an account and assign farms.
+        </EmptyState>
+      )}
 
-      <div className="space-y-3">
+      <div className="account-list">
         {accounts.map((account) => {
           const isMe = account.id === me.id
           const isSuperAdmin = account.role === 'super_admin'
 
           return (
-            <div key={account.id} className="rounded-2xl border border-stone-200 bg-white p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="flex flex-wrap items-center gap-2 font-semibold text-stone-900">
-                    {account.name}
-                    {isSuperAdmin ? (
-                      <Badge className={FLAG.superAdmin.badge}>Super Admin</Badge>
-                    ) : (
-                      <Badge className={FLAG.neutral.badge}>Admin</Badge>
-                    )}
-                    {isMe && <Badge className={FLAG.neutral.badge}>You</Badge>}
-                    {!account.is_active && <InactiveBadge />}
-                    {account.is_active && account.must_change_password && (
-                      <Badge className={FLAG.unusual.badge}>Temporary password</Badge>
-                    )}
-                  </p>
-                  <p className="text-sm text-stone-600">{account.email}</p>
-                  <p className="mt-1 text-sm text-stone-600">
-                    {isSuperAdmin
-                      ? 'Farms: all'
-                      : `Farms: ${account.farms.length ? account.farms.map((farm) => farm.name).join(', ') : 'none assigned'}`}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" className={btnSmall} onClick={() => setEditing(account)}>
-                    Edit
-                  </button>
-                  {/* Your own account is protected, so there is always a Super Admin who can log in. */}
-                  {!isMe && (
-                    <>
-                      <button type="button" className={btnSmall} onClick={() => setConfirming({ kind: 'reset', account })}>
-                        Reset password
-                      </button>
-                      <button type="button" className={btnSmall} onClick={() => (account.is_active ? setConfirming({ kind: 'deactivate', account }) : setActive(account, true))}>
-                        {account.is_active ? 'Deactivate' : 'Reactivate'}
-                      </button>
-                    </>
+            <section key={account.id} className={account.is_active ? 'card account-card' : 'card account-card is-inactive'}>
+              <span className="account-avatar" aria-hidden="true">
+                {initials(account.name)}
+              </span>
+              <div className="account-details">
+                <div className="account-name">
+                  <h2>{account.name}</h2>
+                  <StatusBadge status={isSuperAdmin ? FLAG.superAdmin : FLAG.admin} />
+                  {isMe && <Badge>You</Badge>}
+                  {!account.is_active && <StatusBadge status={FLAG.inactive} />}
+                  {account.is_active && account.must_change_password && (
+                    <Badge className="badge-warning" icon="key">
+                      Temporary password
+                    </Badge>
                   )}
                 </div>
+                <p className="muted">{account.email}</p>
+                <p className="icon-line">
+                  <AppIcon name="leaf" />
+                  Farms:{' '}
+                  {isSuperAdmin ? 'All farms' : account.farms.length ? account.farms.map((farm) => farm.name).join(', ') : 'None assigned yet'}
+                </p>
               </div>
-            </div>
+              <div className="account-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setEditing(account)}>
+                  <AppIcon name="pencil" />
+                  Edit
+                </button>
+                {/* Your own account is protected, so there is always a Super Admin who can log in. */}
+                {!isMe && (
+                  <>
+                    <button type="button" className="btn btn-secondary" onClick={() => setConfirming({ kind: 'reset', account })}>
+                      Reset password
+                    </button>
+                    {account.is_active ? (
+                      <button type="button" className="btn btn-danger" onClick={() => setConfirming({ kind: 'deactivate', account })}>
+                        Deactivate
+                      </button>
+                    ) : (
+                      <button type="button" className="btn btn-secondary" onClick={() => setActive(account, true)}>
+                        Reactivate
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </section>
           )
         })}
       </div>
@@ -150,6 +162,7 @@ export default function AdminAccountsPage() {
         <ConfirmDialog
           title={`Deactivate ${confirming.account.name}?`}
           confirmLabel="Deactivate"
+          danger
           onConfirm={confirmAction}
           onCancel={() => setConfirming(null)}
         >
@@ -157,32 +170,49 @@ export default function AdminAccountsPage() {
         </ConfirmDialog>
       )}
 
-      {credentials && (
-        <Modal title="Temporary password" onClose={() => setCredentials(null)}>
-          <p className="text-sm text-stone-600">
-            Give these to {credentials.name}. They will be asked to choose their own password at first login.
-          </p>
-          <dl className="mt-4 space-y-2 rounded-lg bg-stone-50 p-4 text-sm">
-            <div>
-              <dt className="text-stone-500">Email</dt>
-              <dd className="font-medium text-stone-900">{credentials.email}</dd>
-            </div>
-            <div>
-              <dt className="text-stone-500">Temporary password</dt>
-              <dd className="select-all font-mono text-lg font-semibold text-stone-900">{credentials.password}</dd>
-            </div>
-          </dl>
-          <p className="mt-3 text-sm font-medium text-orange-800">
-            Copy it now. This password is not shown again after you close this window.
-          </p>
-          <div className="mt-4 flex justify-end">
-            <button type="button" className={btnPrimary} onClick={() => setCredentials(null)}>
-              Done
-            </button>
-          </div>
-        </Modal>
-      )}
-    </div>
+      {credentials && <TemporaryPassword credentials={credentials} onClose={() => setCredentials(null)} />}
+    </>
+  )
+}
+
+// Shown once, right after an account is created or its password is reset.
+function TemporaryPassword({ credentials, onClose }) {
+  const [copied, setCopied] = useState(false)
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(credentials.password)
+      setCopied(true)
+    } catch {
+      // No clipboard access (for example an insecure address): the password can still be selected by hand.
+      setCopied(false)
+    }
+  }
+
+  return (
+    <Modal title="Temporary password" onClose={onClose}>
+      <p className="muted">
+        Give these to {credentials.name}. They will be asked to choose their own password at first login.
+      </p>
+      <p style={{ marginTop: 16 }}>
+        <span className="muted">Email</span>
+        <br />
+        <strong>{credentials.email}</strong>
+      </p>
+      <div className="password-display">
+        <code>{credentials.password}</code>
+        <button type="button" className="btn btn-secondary" onClick={copy}>
+          <AppIcon name={copied ? 'check' : 'copy'} />
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <p className="warning-text">Copy it now. This password is not shown again.</p>
+      <div className="form-actions">
+        <button type="button" className="btn btn-primary" onClick={onClose}>
+          Done
+        </button>
+      </div>
+    </Modal>
   )
 }
 
@@ -264,29 +294,23 @@ function AccountForm({ account, isMe, onClose, onSaved }) {
         </FormField>
 
         {form.role === 'admin' && (
-          <div>
-            <p className="mb-2 text-sm font-medium text-stone-700">Assigned farms</p>
-            {farms.loading && <p className="text-sm text-stone-500">Loading…</p>}
-            {farms.data?.farms.length === 0 && (
-              <p className="text-sm text-stone-500">No farms yet. You can assign farms later.</p>
-            )}
-            <div className="space-y-2">
-              {farms.data?.farms.map((farm) => (
-                <Checkbox
-                  key={farm.id}
-                  id={`account_farm_${farm.id}`}
-                  label={farm.is_active ? farm.name : `${farm.name} (inactive)`}
-                  checked={form.farm_ids.includes(farm.id)}
-                  onChange={(checked) => toggleFarm(farm.id, checked)}
-                />
-              ))}
-            </div>
-          </div>
+          <fieldset className="checklist">
+            <legend>Assigned farms</legend>
+            {farms.loading && <p className="muted">Loading…</p>}
+            {farms.data?.farms.length === 0 && <p className="muted">No farms yet. You can assign farms later.</p>}
+            {farms.data?.farms.map((farm) => (
+              <Checkbox
+                key={farm.id}
+                id={`account_farm_${farm.id}`}
+                label={farm.is_active ? farm.name : `${farm.name} (inactive)`}
+                checked={form.farm_ids.includes(farm.id)}
+                onChange={(checked) => toggleFarm(farm.id, checked)}
+              />
+            ))}
+          </fieldset>
         )}
 
-        {isNew && (
-          <p className="text-sm text-stone-500">A temporary password is generated and shown to you after saving.</p>
-        )}
+        {isNew && <p className="muted">A temporary password is generated and shown to you after saving.</p>}
 
         <FormActions onCancel={onClose} saving={saving} saveLabel={isNew ? 'Create account' : 'Save changes'} />
       </form>
