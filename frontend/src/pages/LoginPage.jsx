@@ -4,7 +4,7 @@ import { SibolMark } from '../components/icons.jsx'
 import { useAuth } from '../context/useAuth.js'
 import './login.css'
 
-// Layout and wording come from the Figma Make design (kept in frontend/design/figma-login);
+// Layout and wording come from the Figma Make design;
 // its styles are in login.css, all under the .login-page class.
 // The login behavior is the app's own: real requests, real errors, a real countdown.
 

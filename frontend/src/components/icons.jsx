@@ -101,7 +101,6 @@ export function AppIcon({ name, className = '', ...props }) {
 }
 
 // The Sibol logo, served from frontend/public/logo.png (192 px, transparent corners).
-// The full-size original is kept in frontend/design/logo-original.png.
 // Every place the logo appears uses this component, so replacing that one file changes them all.
 export function SibolMark({ 'aria-hidden': ariaHidden, ...props }) {
   // Beside the word "Sibol" the picture adds nothing for a screen reader, so it gets an empty alt.
