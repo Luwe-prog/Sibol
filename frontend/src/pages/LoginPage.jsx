@@ -37,7 +37,6 @@ const ICON_PATHS = {
       <path d="M5 20 15 9M9 16v-5m0 5h5" />
     </>
   ),
-  sprout: <path d="M12 21v-9M12 15C4 15 3 9 3 6c6 0 9 3 9 9ZM12 12c0-7 5-9 9-9 0 6-3 9-9 9ZM6 21h12" />,
   mail: (
     <>
       <rect x="3" y="5" width="18" height="14" rx="3" />
@@ -325,24 +324,7 @@ export default function LoginPage() {
             </p>
           </form>
 
-          {/* Plain links, so the page also works where no router is present (the tests). */}
-          <div className="learn-card">
-            <span className="learn-icon">
-              <Icon name="sprout" />
-            </span>
-            <div>
-              <p>New to Sibol?</p>
-              <a href="/">
-                See how it works <Icon name="arrow" />
-              </a>
-            </div>
-            <Icon name="leaf" className="card-leaf" />
-          </div>
-
           <footer className="footer">
-            <a href="/">
-              See how Sibol works <Icon name="arrow" />
-            </a>
             <span>© {YEAR} Sibol</span>
           </footer>
         </div>

@@ -228,10 +228,27 @@ function WaterApplied({ reading, isDry, onChanged }) {
   if (recorded && !editing) {
     return (
       <section className={`${cardClass} space-y-3.5 p-4 lg:p-6`}>
-        <p className="flex items-center gap-2 text-[15px] font-semibold text-green-800" role="status">
-          <AppIcon name="optimal" />
-          Water applied is recorded.
-        </p>
+        <div role="status">
+          <p className="flex items-center gap-2 text-[15px] font-semibold text-green-800">
+            <AppIcon name="optimal" />
+            Saved. The water you used is recorded.
+          </p>
+          {/* Saving changes nothing on this page, so say where the number goes. */}
+          <p className="mt-1 text-sm text-stone-600">
+            It is counted in the{' '}
+            <Link to="/reports/water" className="font-semibold text-forest underline underline-offset-2 hover:text-forest-dark">
+              Water report
+            </Link>
+            , where recommended and applied water are compared.
+          </p>
+          {/* This reading stays as it was measured, so point to the reading that shows the effect. */}
+          {reading.water_applied_liters > 0 && (
+            <p className="mt-1 text-sm text-stone-600">
+              This result stays as it was measured. To check if the watering worked, take a new reading in a few hours, once the
+              water has soaked in.
+            </p>
+          )}
+        </div>
         <dl className="grid grid-cols-3 gap-2.5">
           <SummaryBox label="Recommended" value={`${recommended} L`} />
           <SummaryBox label="Applied" value={`${formatNumber(reading.water_applied_liters)} L`} />

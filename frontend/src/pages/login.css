@@ -78,17 +78,7 @@
 .login-page .submit-button.rate-limited { background: var(--border); color: var(--charcoal); }
 .login-page .account-note { display: flex; justify-content: center; align-items: flex-start; gap: 9px; font-size: 13px; line-height: 1.6; color: var(--muted); text-align: center; margin: 19px 0 0; }
 .login-page .account-note .icon { width: 16px; height: 16px; margin-top: 3px; flex-shrink: 0; }
-.login-page .learn-card { position: relative; display: flex; align-items: center; gap: 14px; overflow: hidden; background: #DCE8D840; border: 1px solid var(--border); border-radius: 12px; padding: 17px 20px; margin-top: 42px; }
-.login-page .learn-icon { width: 42px; height: 42px; display: grid; place-items: center; background: var(--sage); color: var(--forest); border-radius: 10px; flex-shrink: 0; }
-.login-page .learn-card p { font-size: 14px; font-weight: 500; margin: 0; }
-.login-page .learn-card a, .login-page .footer a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--forest); font-size: 13px; font-weight: 500; text-decoration: none; }
-.login-page .learn-card a { margin-bottom: -9px; }
-.login-page .learn-card a:hover, .login-page .footer a:hover { text-decoration: underline; }
-.login-page .learn-card a .icon, .login-page .footer a .icon { width: 16px; height: 16px; }
-.login-page .card-leaf { position: absolute; right: 10px; bottom: -12px; width: 95px; height: 95px; color: var(--forest); opacity: .08; pointer-events: none; transform: rotate(-25deg); }
 .login-page .footer { display: flex; flex-direction: column; align-items: center; color: var(--muted); font-size: 12px; margin-top: 32px; }
-/* The "See how it works" card is hidden on phones, so the footer carries the link there. */
-.login-page .footer a { display: none; }
 .login-page .error-banner { display: flex; gap: 10px; align-items: flex-start; padding: 13px; margin-bottom: 20px; border: 1px solid #FECACA; background: #FEF2F2; color: #B91C1C; border-radius: 8px; font-size: 13px; line-height: 1.6; }
 .login-page .error-banner .icon { width: 19px; height: 19px; flex-shrink: 0; margin-top: 2px; }
 .login-page .error-banner p { margin: 0; }
@@ -112,7 +102,6 @@
   .login-page .field-group { margin-bottom: 15px; }
   .login-page .field-group label { margin-bottom: 6px; }
   .login-page .account-note { margin-top: 14px; }
-  .login-page .learn-card { margin-top: 22px; padding: 12px 18px; }
   .login-page .footer { margin-top: 16px; }
   .login-page .photo-eyebrow { margin-bottom: 12px; }
   .login-page .photo-description { font-size: 16px; line-height: 1.65; }
@@ -135,9 +124,7 @@
   .login-page .brand { display: none; }
   .login-page .form-heading { margin-bottom: 25px; }
   .login-page .form-heading h1 { font-size: 27px; }
-  .login-page .learn-card { display: none; }
   .login-page .footer { margin-top: 28px; }
-  .login-page .footer a { display: inline-flex; }
 }
 @media (prefers-reduced-motion: reduce) {
   .login-page .spinner { animation: none; }

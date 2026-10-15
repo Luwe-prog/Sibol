@@ -144,6 +144,7 @@ Seed about a week of readings across several zones so every status appears (dry,
 
 - Tailwind v3.4.1 only (never v4 syntax); no dynamic class interpolation (use full class strings).
 - Laravel 12 with Sanctum Bearer tokens: no CSRF, no `withCredentials`.
+- The frontend keeps the token in `sessionStorage`, so closing the tab logs the user out and reopening Sibol shows the landing page.
 - PHP enums: use `->value` when passing to string functions.
 - Route groups: `->prefix('admin')` already adds the prefix; don't repeat `/admin` in route paths.
 - Use seeders (not tinker) for seed data.

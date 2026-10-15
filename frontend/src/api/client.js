@@ -2,9 +2,18 @@ import axios from 'axios'
 
 const TOKEN_KEY = 'sibol_token'
 
-export const getToken = () => localStorage.getItem(TOKEN_KEY)
-export const setToken = (token) => localStorage.setItem(TOKEN_KEY, token)
-export const clearToken = () => localStorage.removeItem(TOKEN_KEY)
+// The login lives in sessionStorage, which the browser clears when the tab is closed,
+// so reopening Sibol starts logged out on the landing page.
+// Earlier versions kept it in localStorage; remove that copy so it cannot linger.
+try {
+  localStorage.removeItem(TOKEN_KEY)
+} catch {
+  // Storage can be blocked (private mode, strict settings); there is then nothing to remove.
+}
+
+export const getToken = () => sessionStorage.getItem(TOKEN_KEY)
+export const setToken = (token) => sessionStorage.setItem(TOKEN_KEY, token)
+export const clearToken = () => sessionStorage.removeItem(TOKEN_KEY)
 
 // Sanctum Bearer tokens: no cookies, no CSRF, no withCredentials.
 const api = axios.create({
