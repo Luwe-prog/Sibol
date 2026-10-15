@@ -49,7 +49,7 @@ function ReadingResult({ reading, onChanged }) {
       <PageHeader
         title="Reading result"
         subtitle={`${zone.farm.name} · ${zone.name} · ${zone.crop.name} · ${ENVIRONMENT_LABEL[zone.environment]}`}
-        back={{ to: `/zones/${zone.id}`, label: zone.name }}
+        back={{ to: `/zones/${zone.id}`, label: `Back to ${zone.name}` }}
       />
 
       <ErrorAlert>{error}</ErrorAlert>
@@ -129,22 +129,38 @@ function ReadingResult({ reading, onChanged }) {
         </dl>
       </section>
 
-      <div className="flex flex-wrap gap-2">
-        {canEnter && (
-          <Link to={`/zones/${zone.id}/readings/new`} className={`w-full sm:w-auto ${btnPrimary}`}>
-            <AppIcon name="plus" />
-            Enter another reading
+      {/* A clear way to finish, so nobody has to hunt for the small link at the top. */}
+      <section className={`${cardClass} p-4 sm:p-5`}>
+        <h2>What next?</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link to="/" className={`w-full sm:w-auto ${btnPrimary}`}>
+            <AppIcon name="check" />
+            Done, back to dashboard
           </Link>
-        )}
-        <Link to={`/readings/${reading.id}/edit`} className={`flex-1 sm:flex-none ${btnSecondary}`}>
-          <AppIcon name="pencil" />
-          Edit
-        </Link>
-        <button type="button" className={`flex-1 sm:flex-none ${btnDanger}`} onClick={() => setConfirmingDelete(true)}>
-          <AppIcon name="trash" />
-          Delete
-        </button>
-      </div>
+          {canEnter && (
+            <Link to={`/zones/${zone.id}/readings/new`} className={`flex-1 sm:flex-none ${btnSecondary}`}>
+              <AppIcon name="plus" />
+              Enter another reading
+            </Link>
+          )}
+          <Link to={`/zones/${zone.id}`} className={`flex-1 sm:flex-none ${btnSecondary}`}>
+            <AppIcon name="history" />
+            See this zone’s history
+          </Link>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4">
+          <p className="mr-auto w-full text-sm text-stone-600 sm:w-auto">Made a mistake in this reading?</p>
+          <Link to={`/readings/${reading.id}/edit`} className={`flex-1 sm:flex-none ${btnSecondary}`}>
+            <AppIcon name="pencil" />
+            Edit
+          </Link>
+          <button type="button" className={`flex-1 sm:flex-none ${btnDanger}`} onClick={() => setConfirmingDelete(true)}>
+            <AppIcon name="trash" />
+            Delete
+          </button>
+        </div>
+      </section>
 
       {confirmingDelete && (
         <ConfirmDialog
